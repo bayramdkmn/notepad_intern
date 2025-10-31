@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -21,8 +21,30 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(t);
     if (typeof document !== "undefined") {
       document.documentElement.classList.toggle("dark", t === "dark");
+      try {
+        localStorage.setItem("theme", t);
+      } catch {}
     }
   };
+
+  // İlk yüklemede localStorage veya sistem tercihinden başlat
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("theme");
+      let initial: Theme | null = null;
+      if (stored === "light" || stored === "dark") {
+        initial = stored;
+      } else if (typeof window !== "undefined") {
+        initial = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
+      if (initial) {
+        document.documentElement.classList.toggle("dark", initial === "dark");
+        setThemeState(initial);
+      }
+    } catch {}
+  }, []);
 
   const value = useMemo<ThemeContextValue>(
     () => ({

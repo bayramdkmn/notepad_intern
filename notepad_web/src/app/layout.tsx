@@ -26,48 +26,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-black text-black dark:text-white transition-colors`}
-      >
-        <ThemeProvider>
-          <header className="border-b">
-            <nav className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4 dark:bg-zinc-900 light:bg-white">
-              <a href="/" className="font-semibold">
-                Notepad AI
-              </a>
-              <div className="flex items-center gap-3 text-sm">
-                <a
-                  href="/search"
-                  className="underline-offset-4 hover:underline"
-                >
-                  Arama
-                </a>
-                <a href="/tags" className="underline-offset-4 hover:underline">
-                  Etiketler
-                </a>
-                <a
-                  href="/settings"
-                  className="underline-offset-4 hover:underline"
-                >
-                  Ayarlar
-                </a>
-              </div>
-              <div className="ml-auto flex items-center gap-2 text-sm">
-                <ThemeToggle />
-                <a href="/login" className="border rounded px-3 py-1">
-                  Giriş
-                </a>
-                <a
-                  href="/register"
-                  className="bg-black text-white rounded px-3 py-1"
-                >
-                  Kayıt ol
-                </a>
-              </div>
-            </nav>
-          </header>
-          <div className="mx-auto max-w-6xl px-4">{children}</div>
-        </ThemeProvider>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.classList.toggle('dark',t==='dark');}catch(e){}})();",
+          }}
+        />
+      </head>
+      <body className="antialiased transition-colors bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

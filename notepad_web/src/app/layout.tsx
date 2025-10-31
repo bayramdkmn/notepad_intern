@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,44 +25,49 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-black text-black dark:text-white transition-colors`}
       >
-        <header className="border-b">
-          <nav className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4">
-            <a href="/" className="font-semibold">
-              Notepad AI
-            </a>
-            <div className="flex items-center gap-3 text-sm">
-              <a href="/search" className="underline-offset-4 hover:underline">
-                Arama
+        <ThemeProvider>
+          <header className="border-b">
+            <nav className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4 dark:bg-zinc-900 light:bg-white">
+              <a href="/" className="font-semibold">
+                Notepad AI
               </a>
-              <a href="/tags" className="underline-offset-4 hover:underline">
-                Etiketler
-              </a>
-              <a
-                href="/settings"
-                className="underline-offset-4 hover:underline"
-              >
-                Ayarlar
-              </a>
-            </div>
-            <div className="ml-auto flex items-center gap-2 text-sm">
-              <ThemeToggle />
-              <a href="/login" className="border rounded px-3 py-1">
-                Giriş
-              </a>
-              <a
-                href="/register"
-                className="bg-black text-white rounded px-3 py-1"
-              >
-                Kayıt ol
-              </a>
-            </div>
-          </nav>
-        </header>
-        <div className="mx-auto max-w-6xl px-4">{children}</div>
+              <div className="flex items-center gap-3 text-sm">
+                <a
+                  href="/search"
+                  className="underline-offset-4 hover:underline"
+                >
+                  Arama
+                </a>
+                <a href="/tags" className="underline-offset-4 hover:underline">
+                  Etiketler
+                </a>
+                <a
+                  href="/settings"
+                  className="underline-offset-4 hover:underline"
+                >
+                  Ayarlar
+                </a>
+              </div>
+              <div className="ml-auto flex items-center gap-2 text-sm">
+                <ThemeToggle />
+                <a href="/login" className="border rounded px-3 py-1">
+                  Giriş
+                </a>
+                <a
+                  href="/register"
+                  className="bg-black text-white rounded px-3 py-1"
+                >
+                  Kayıt ol
+                </a>
+              </div>
+            </nav>
+          </header>
+          <div className="mx-auto max-w-6xl px-4">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );

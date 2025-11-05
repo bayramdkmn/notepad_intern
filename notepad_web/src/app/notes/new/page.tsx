@@ -91,71 +91,77 @@ export default function NewNotePage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
       {/* Header */}
-      <div className="bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-          >
-            <ArrowBackIcon />
-            <span className="hidden sm:inline">Geri</span>
-          </button>
+      <div className="sticky top-0 z-10 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-3 sm:gap-4">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-lg transition-colors text-sm sm:text-base"
+            >
+              <ArrowBackIcon fontSize="small" />
+              <span className="hidden sm:inline">Geri</span>
+            </button>
 
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Yeni Not
-          </h1>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+              Yeni Not
+            </h1>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaving || !title.trim() || !content.trim()}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
-            <SaveIcon fontSize="small" />
-            <span className="hidden sm:inline">
-              {isSaving ? "Kaydediliyor..." : "Kaydet"}
-            </span>
-          </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving || !title.trim() || !content.trim()}
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+            >
+              <SaveIcon fontSize="small" />
+              <span className="hidden sm:inline">
+                {isSaving ? "Kaydediliyor..." : "Kaydet"}
+              </span>
+              <span className="sm:hidden">{isSaving ? "..." : "Kaydet"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        <div className="bg-white dark:bg-zinc-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
           {/* Title Input */}
-          <div className="p-6 border-b border-gray-200 dark:border-zinc-700">
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-zinc-700">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Başlık..."
-              className="w-full text-3xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
+              className="w-full text-xl sm:text-2xl lg:text-3xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
               autoFocus
             />
           </div>
 
           {/* Tags Section */}
-          <div className="p-6 border-b border-gray-200 dark:border-zinc-700">
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-zinc-700">
             <div className="flex items-center gap-2 mb-3">
               <LocalOfferIcon className="text-gray-500" fontSize="small" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                 Etiketler
               </span>
             </div>
 
             {/* Selected Tags */}
             {selectedTags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
                 {selectedTags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+                    className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-xs sm:text-sm"
                   >
                     {tag}
                     <button
                       onClick={() => toggleTag(tag)}
                       className="hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-full p-0.5"
                     >
-                      <CloseIcon fontSize="small" className="w-3 h-3" />
+                      <CloseIcon
+                        fontSize="small"
+                        className="w-3 h-3 sm:w-4 sm:h-4"
+                      />
                     </button>
                   </span>
                 ))}
@@ -168,19 +174,19 @@ export default function NewNotePage() {
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="w-20 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
+                    className="w-16 sm:w-20 h-7 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
                   />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {availableTags
                   .filter((tag) => !selectedTags.includes(tag.name))
                   .map((tag) => (
                     <button
                       key={tag.id}
                       onClick={() => toggleTag(tag.name)}
-                      className="px-3 py-1 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors"
+                      className="px-2 sm:px-3 py-1 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors"
                     >
                       {tag.name}
                     </button>
@@ -188,7 +194,7 @@ export default function NewNotePage() {
 
                 {/* Add New Tag */}
                 {showTagInput ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <input
                       type="text"
                       value={newTagName}
@@ -197,7 +203,7 @@ export default function NewNotePage() {
                         if (e.key === "Enter") handleAddNewTag();
                       }}
                       placeholder="Yeni etiket..."
-                      className="px-3 py-1 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-white rounded-full text-sm outline-none border border-blue-500"
+                      className="px-2 sm:px-3 py-1 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-white rounded-full text-xs sm:text-sm outline-none border border-blue-500 w-24 sm:w-32"
                       autoFocus
                     />
                     <button
@@ -219,7 +225,7 @@ export default function NewNotePage() {
                 ) : (
                   <button
                     onClick={() => setShowTagInput(true)}
-                    className="flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors"
+                    className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs sm:text-sm hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors"
                   >
                     <AddIcon fontSize="small" />
                     Yeni Etiket
@@ -230,18 +236,18 @@ export default function NewNotePage() {
           </div>
 
           {/* Content Editor */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Notunuzu buraya yazın..."
-              className="w-full min-h-[400px] bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400 resize-none text-lg leading-relaxed"
+              className="w-full min-h-[300px] sm:min-h-[400px] bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400 resize-none text-base sm:text-lg leading-relaxed"
             />
           </div>
 
           {/* Footer Info */}
-          <div className="px-6 py-4 bg-gray-50 dark:bg-zinc-900/50 border-t border-gray-200 dark:border-zinc-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 dark:bg-zinc-900/50 border-t border-gray-200 dark:border-zinc-700">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               {content.length} karakter ·{" "}
               {content.split(/\s+/).filter(Boolean).length} kelime
             </p>

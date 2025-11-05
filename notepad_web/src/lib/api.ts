@@ -253,7 +253,8 @@ class ApiClient {
   }
 
   async searchNotes(query: string): Promise<any[]> {
-    return this.request<any[]>(`/notes/notes/search/?q=${encodeURIComponent(query)}`);
+    if (!query.trim()) return [];
+    return this.request<any[]>(`/notes/notes/search/?query=${encodeURIComponent(query)}`);
   }
 
   // Tags endpoints

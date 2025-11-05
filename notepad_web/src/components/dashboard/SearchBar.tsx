@@ -11,18 +11,6 @@ export default function SearchBar() {
           </div>
         </label>
       </div>
-      <div className="flex items-center gap-2 w-full sm:w-auto">
-        <button className="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 px-4 dark:bg-[#242424] dark:border-transparent dark:hover:bg-[#333333]">
-          <p className="text-gray-700 text-sm font-medium dark:text-[#E0E0E0]">
-            Filtrele
-          </p>
-        </button>
-        <button className="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 px-4 dark:bg-[#242424] dark:border-transparent dark:hover:bg-[#333333]">
-          <p className="text-gray-700 text-sm font-medium dark:text-[#E0E0E0]">
-            Sırala
-          </p>
-        </button>
-      </div>
     </header>
   );
 }

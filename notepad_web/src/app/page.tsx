@@ -1,13 +1,8 @@
-import type { Metadata } from "next";
+"use client";
+
 import Sidebar from "@/components/dashboard/Sidebar";
 import SearchBar from "@/components/dashboard/SearchBar";
-import FiltersBar from "@/components/dashboard/FiltersBar";
 import NotesGrid from "@/components/dashboard/NotesGrid";
-
-export const metadata: Metadata = {
-  title: "Notepad - Notlarım",
-  description: "Tüm notlarınıza buradan erişebilir ve yönetebilirsiniz",
-};
 
 export default function Home() {
   return (
@@ -26,7 +21,6 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <FiltersBar />
           <NotesGrid />
         </div>
       </main>

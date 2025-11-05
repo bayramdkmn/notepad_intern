@@ -165,12 +165,14 @@ class ApiClient {
   }
 
   async updateProfile(data: {
-    first_name?: string;
-    last_name?: string;
-    phone?: string;
+    name: string;
+    surname: string;
+    username: string;
+    phone_number: string;
+    email: string;
   }): Promise<UserResponse> {
     return this.request<UserResponse>("/auth/users/update-user/", {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(data),
     });
   }
@@ -193,7 +195,16 @@ class ApiClient {
 
   // Notes endpoints
   async getNotes(): Promise<any[]> {
-    return this.request<any[]>("/notes/notes/get-all-notes/");
+    try {
+      const response = await this.request<any[]>("/notes/notes/get-all-notes/");
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      // Eğer "Empty" veya "empty" hatası geliyorsa, boş array dön
+      if (error instanceof Error && (error.message.toLowerCase().includes("empty") || error.message.toLowerCase().includes("database"))) {
+        return [];
+      }
+      throw error;
+    }
   }
 
   async createNote(data: {
@@ -247,7 +258,16 @@ class ApiClient {
 
   // Tags endpoints
   async getTags(): Promise<any[]> {
-    return this.request<any[]>("/tags/tag/get-all-tags");
+    try {
+      const response = await this.request<any[]>("/tags/tag/get-all-tags");
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      // Eğer "Empty" veya "empty" hatası geliyorsa, boş array dön
+      if (error instanceof Error && (error.message.toLowerCase().includes("empty") || error.message.toLowerCase().includes("database"))) {
+        return [];
+      }
+      throw error;
+    }
   }
 
   async createTag(name: string): Promise<any> {

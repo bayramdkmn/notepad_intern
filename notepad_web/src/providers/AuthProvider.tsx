@@ -26,9 +26,9 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   updateUser: (data: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
   }) => Promise<void>;
   changePassword: (
     currentPassword: string,
@@ -168,15 +168,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = async (data: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
   }) => {
     try {
+      if (!user) {
+        throw new Error("User not found");
+      }
+
       const updatedUser = await api.updateProfile({
-        first_name: data.firstName,
-        last_name: data.lastName,
-        phone: data.phone,
+        name: data.firstName,
+        surname: data.lastName,
+        username: user.username || "",
+        phone_number: data.phone,
+        email: user.email,
       });
       const userInfo = {
         id: updatedUser.id,

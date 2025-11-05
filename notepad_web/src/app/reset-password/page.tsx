@@ -22,7 +22,6 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="bg-white dark:bg-[#101622] w-full select-none h-screen overflow-auto py-10 flex items-center flex-col gap-10 justify-center text-white relative">
-      {/* Theme Toggle - Top Right */}
       <div className="absolute top-6 right-6 animate-fade-in">
         <ThemeToggle />
       </div>

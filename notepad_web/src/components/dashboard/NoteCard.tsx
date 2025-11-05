@@ -3,6 +3,7 @@ type Props = {
   description: string;
   updatedText: string;
   tags: string[];
+  onClick?: () => void;
 };
 
 export default function NoteCard({
@@ -10,9 +11,13 @@ export default function NoteCard({
   description,
   updatedText,
   tags,
+  onClick,
 }: Props) {
   return (
-    <div className="flex flex-col gap-4 rounded-xl p-5 bg-white border border-gray-200 hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer dark:bg-[#242424] dark:border-transparent hover:scale-95 duration-400 select-none">
+    <div
+      onClick={onClick}
+      className="flex flex-col gap-4 rounded-xl p-5 bg-white border border-gray-200 hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer dark:bg-[#242424] dark:border-transparent hover:scale-95 duration-400 select-none"
+    >
       <div>
         <p className="text-gray-900 text-lg font-bold dark:text-white">
           {title}

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import NotesIcon from "@mui/icons-material/Notes";
@@ -11,6 +11,7 @@ import { useAuth } from "@/providers/AuthProvider";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
 
@@ -117,7 +118,10 @@ export default function Sidebar() {
         </nav>
       </div>
       <div className="mt-auto flex flex-col gap-3 border-t border-gray-300 pt-4 dark:border-[#424242]">
-        <button className="flex items-center justify-center gap-2 py-3 hover:scale-95 duration-300 px-6 w-full shrink-0 bg-blue-500 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-primary/90 transition-all">
+        <button
+          onClick={() => router.push("/notes/new")}
+          className="flex items-center justify-center gap-2 py-3 hover:scale-95 duration-300 px-6 w-full shrink-0 bg-blue-500 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-primary/90 transition-all"
+        >
           <NoteAddIcon fontSize="small" />
           <span>Yeni Not Oluştur</span>
         </button>

@@ -62,6 +62,16 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
+    // Form validation
+    if (!formData.name.trim()) {
+      alert("Lütfen adınızı girin!");
+      return;
+    }
+    if (!formData.surname.trim()) {
+      alert("Lütfen soyadınızı girin!");
+      return;
+    }
+    
     // Telefon validasyonu
     if (
       formData.phone &&
@@ -77,7 +87,7 @@ export default function ProfilePage() {
       await updateUser({
         firstName: formData.name,
         lastName: formData.surname,
-        phone: formData.phone,
+        phone: formData.phone || "",
       });
       setIsEditing(false);
     } catch (error) {

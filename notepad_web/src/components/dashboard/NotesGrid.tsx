@@ -99,7 +99,7 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
   const filteredAndSortedNotes = useMemo(() => {
     console.log("useMemo - searchResults:", searchResults);
     console.log("useMemo - notes:", notes.length);
-    
+
     // If search results exist, use them instead of all notes
     let filtered = searchResults !== null ? [...searchResults] : [...notes];
     console.log("useMemo - filtered after search check:", filtered.length);
@@ -167,7 +167,7 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
 
     // Apply sorting
     const sorted = [...filtered];
-    
+
     // If we have search results, sort by similarity score first
     if (searchResults !== null) {
       sorted.sort((a: any, b: any) => {
@@ -181,13 +181,15 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
         case "date-desc":
           sorted.sort(
             (a, b) =>
-              new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+              new Date(b.updated_at).getTime() -
+              new Date(a.updated_at).getTime()
           );
           break;
         case "date-asc":
           sorted.sort(
             (a, b) =>
-              new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+              new Date(a.updated_at).getTime() -
+              new Date(b.updated_at).getTime()
           );
           break;
         case "priority":

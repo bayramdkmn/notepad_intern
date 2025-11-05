@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional,List
 
@@ -28,6 +29,8 @@ class LoginRequest(BaseModel):
 class NoteRequest(BaseModel):
     title: str
     content: str
+    is_feature_note: Optional[bool] = False
+    feature_date: Optional[datetime] = None
     tags: Optional[List[str]] = []
 
 class TagCreateRequest(BaseModel):
@@ -64,4 +67,6 @@ class VerifyOTPSchema(BaseModel):
 class ResetPasswordSchema(BaseModel):
     new_password: str
     confirm_new_password: str
+
+
 

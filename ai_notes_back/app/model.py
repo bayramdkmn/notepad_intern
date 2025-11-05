@@ -27,6 +27,8 @@ class Notes(Base):
     deleted_at = Column(DateTime(timezone=True),nullable=True)
     is_archived = Column(Boolean, default=False)
     is_pinned = Column(Boolean,default=False)
+    is_feature_note = Column(Boolean,default=False)
+    feature_date = Column(DateTime(timezone=True),nullable=True)
     tags = relationship("Tag", secondary="note_tags", back_populates="notes")
 
 

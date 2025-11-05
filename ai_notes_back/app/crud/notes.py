@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter,Depends,HTTPException,Query,status,Response,BackgroundTasks
+from fastapi import APIRouter,Depends,HTTPException,Query,status,Response
 from ..api.embedding import get_embedding
 
 from ..model import Notes,Tag
@@ -79,44 +79,40 @@ async def delete_note(note_id:int,dependency:user_dependency,db:Session=Depends(
     }
 
 @router.post("/notes/create-note/")
-async def create_note(dependency:user_dependency,note_request:NoteRequest,db:Session=Depends(get_db)):
+async def create_note(dependency: user_dependency, note_request: NoteRequest, db: Session = Depends(get_db)):
     if dependency is None:
-        raise HTTPException(401,detail="Not Authenticated!")
+        raise HTTPException(401, detail="Not Authenticated!")
 
     embedding_byte = get_embedding(note_request.content)
 
     note_tags = []
     for tag_name in note_request.tags:
-        tag = db.query(Tag).filter(Tag.name.__eq__(tag_name),Tag.user_id.__eq__(dependency.get("id"))).first()
+        tag = db.query(Tag).filter(Tag.name.__eq__(tag_name), Tag.user_id.__eq__(dependency.get("id"))).first()
         if not tag:
-            tag = Tag(name=tag_name,user_id=dependency.get("id"))
+            tag = Tag(name=tag_name, user_id=dependency.get("id"))
             db.add(tag)
             db.commit()
             db.refresh(tag)
         note_tags.append(tag)
 
+    feature_date = note_request.feature_date if note_request.is_feature_note else None
+
     db_notes = Notes(
-        title = note_request.title,
-        content = note_request.content,
-        tags = note_tags,
-        embedding = embedding_byte,
-        user_id = dependency.get("id")
+        title=note_request.title,
+        content=note_request.content,
+        tags=note_tags,
+        embedding=embedding_byte,
+        user_id=dependency.get("id"),
+        is_feature_note=note_request.is_feature_note,
+        feature_date=feature_date
     )
 
     db.add(db_notes)
     db.commit()
     db.refresh(db_notes)
 
+    return db_notes
 
-    return {
-        "id": db_notes.id,
-        "title": db_notes.title,
-        "content": db_notes.content,
-        "tags": [{"id": tag.id, "name": tag.name} for tag in db_notes.tags],
-        "created_at": db_notes.created_at,
-        "updated_at": db_notes.updated_at,
-        "is_active": db_notes.is_active
-    }
 
 @router.patch("/notes/update-note/{note_id}")
 async def update_notes_with_id_by_creator(note_id:int,dependency:user_dependency,update_body:UpdateNotesRequest,db:Session=Depends(get_db)):
@@ -443,3 +439,28 @@ async def get_note_by_tag_name_from_database(tag_name:str,dependency:user_depend
         "tags": [{"id": tag.id, "name": tag.name} for tag in note.tags]
     })
     return note_list
+
+@router.get("/notes/get-all-feature-notes")
+async def get_all_feature_notes(dependency:user_dependency,db:Session=Depends(get_db)):
+    feature_notes = db.query(Notes).filter(Notes.user_id.__eq__(dependency.get("id")),Notes.is_feature_note.__eq__(True)).all()
+    if not feature_notes:
+        return {
+            "notes" : []
+        }
+    notes_list = []
+    for note in feature_notes:
+        notes_list.append({
+            "id": note.id,
+            "title": note.title,
+            "content": note.content,
+            "tags": [{"id": tag.id, "name": tag.name} for tag in note.tags],
+            "created_at": note.created_at,
+            "updated_at": note.updated_at,
+            "is_active": note.is_active,
+            "is_archived": note.is_archived,
+            "is_pinned": note.is_pinned,
+            "favorite": note.favorite
+        })
+
+    return notes_list
+

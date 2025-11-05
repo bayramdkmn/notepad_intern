@@ -44,16 +44,19 @@ class UpdateUserRequest(BaseModel):
     phone_number : str
     email :str
 
-class RequestPasswordResetSchema(BaseModel):
-    email: str
-
-class ResetWithTokenSchema(BaseModel):
-    token: str
-    new_password: str
-    confirm_new_password: str
-
 class IdsSchema(BaseModel):
     ids: List[int]
 
 class UpdateTagRequest(BaseModel):
     name : str
+
+class RequestPasswordResetSchema(BaseModel):
+    email: str
+
+class VerifyOTPSchema(BaseModel):
+    otp: str
+
+class ResetPasswordSchema(BaseModel):
+    new_password: str
+    confirm_new_password: str
+

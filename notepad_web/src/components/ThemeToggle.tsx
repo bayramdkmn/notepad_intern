@@ -36,7 +36,9 @@ export default function ThemeToggle() {
       className="flex items-center gap-2 text-sm cursor-pointer select-none"
       aria-label="Tema anahtarı"
     >
-      <span className="hidden md:inline">{isDark ? "Koyu" : "Açık"} Mod</span>
+      <span className="hidden text-black dark:text-white md:inline">
+        {isDark ? "Koyu" : "Açık"} Mod
+      </span>
       <div
         className="relative h-6 w-11"
         onClick={toggle}

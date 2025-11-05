@@ -23,12 +23,12 @@ export default function ResetPasswordPage() {
   return (
     <div className="bg-white dark:bg-[#101622] w-full select-none h-screen overflow-auto py-10 flex items-center flex-col gap-10 justify-center text-white relative">
       {/* Theme Toggle - Top Right */}
-      <div className="absolute top-6 right-6">
+      <div className="absolute top-6 right-6 animate-fade-in">
         <ThemeToggle />
       </div>
 
       {!token ? (
-        <div className="flex w-full max-w-md gap-4 flex-col rounded-xl bg-neutral-800/60 p-6 shadow-lg ring-1 ring-neutral-700 text-center">
+        <div className="flex w-full max-w-md gap-4 flex-col rounded-xl bg-neutral-800/60 p-6 shadow-lg ring-1 ring-neutral-700 text-center animate-fade-in">
           <span className="font-extrabold text-2xl">Bağlantı Geçersiz</span>
           <p className="text-neutral-300">
             Bağlantı süresi dolmuş olabilir. Lütfen yeniden şifre sıfırlama
@@ -44,7 +44,7 @@ export default function ResetPasswordPage() {
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="flex w-full max-w-md gap-4 flex-col rounded-xl p-6 shadow-lg ring-1 ring-neutral-700"
+          className="flex w-full max-w-md gap-4 flex-col rounded-xl p-6 shadow-lg ring-1 ring-neutral-700 animate-fade-in"
         >
           <span className="text-center font-extrabold text-2xl">
             Yeni Şifre Belirle

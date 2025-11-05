@@ -125,14 +125,14 @@ export default function ForgotPasswordPage() {
   return (
     <div className="w-full min-h-screen flex items-center flex-col gap-10 justify-center select-none bg-white dark:bg-[#101622] text-white relative">
       {/* Theme Toggle - Top Right */}
-      <div className="absolute top-6 right-6">
+      <div className="absolute top-6 right-6 animate-fade-in">
         <ThemeToggle />
       </div>
 
       {step === "request" && (
         <form
           onSubmit={handleRequest}
-          className="flex w-full max-w-md gap-4 flex-col rounded-xl  p-6 shadow-lg ring-1 ring-neutral-700"
+          className="flex w-full max-w-md gap-4 flex-col rounded-xl  p-6 shadow-lg ring-1 ring-neutral-700 animate-fade-in"
         >
           <span className="text-black dark:text-white text-center font-extrabold text-2xl">
             Şifrenizi Sıfırlayın
@@ -162,7 +162,7 @@ export default function ForgotPasswordPage() {
       {step === "verify" && (
         <form
           onSubmit={handleVerify}
-          className="flex w-full max-w-md gap-4 flex-col rounded-xl p-6 shadow-lg ring-1 ring-neutral-700"
+          className="flex w-full max-w-md gap-4 flex-col rounded-xl p-6 shadow-lg ring-1 ring-neutral-700 animate-fade-in"
         >
           <span className="text-black dark:text-white text-center font-extrabold text-xl">
             E-posta Doğrulama

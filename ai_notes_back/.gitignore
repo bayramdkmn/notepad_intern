@@ -1,0 +1,86 @@
+# =========================
+# 🐍 Python Temel Ignore
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Sanal ortam (virtualenv / venv)
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+
+# PyInstaller
+*.spec
+
+# =========================
+# 🧪 Test ve Log dosyaları
+# =========================
+*.log
+*.pot
+*.mo
+*.pyc
+.coverage
+coverage.xml
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.pyre/
+.dmypy.json
+.pytype/
+
+# =========================
+# ⚙️ IDE ve Editörler
+# =========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+
+# =========================
+# 🧱 Framework / Proje Özel
+# =========================
+# Alembic migration cache
+alembic/versions/__pycache__/
+# SQLite (lokal db dosyaları)
+*.db
+*.sqlite3
+
+# FastAPI static / media
+staticfiles/
+media/
+uploads/
+temp/
+cache/
+
+# =========================
+# 🧰 Build / Dist dosyaları
+# =========================
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+
+# =========================
+# 🔐 Gizli veya özel bilgiler
+# =========================
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+
+# =========================
+# 💾 OS (sistem) dosyaları
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini

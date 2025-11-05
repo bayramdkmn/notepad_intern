@@ -91,7 +91,7 @@ const LoginPage = () => {
             <input
               className={`rounded-md border border-[#92a4c9] placeholder:text-[#92a4c9] text-[#92a4c9] ${
                 errors.email ? "border-red-500" : "border-border-dark"
-              } w-full bg-transparent px-3 py-4 text-white placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600 outline-none`}
+              } w-full bg-transparent px-3 py-4 text-black dark:text-white placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600 outline-none`}
               type="email"
               placeholder="E-posta adresinizi girin"
               required
@@ -113,7 +113,7 @@ const LoginPage = () => {
             <input
               className={`rounded-md border border-[#92a4c9] placeholder:text-[#92a4c9] text-[#92a4c9] ${
                 errors.password ? "border-red-500" : "border-border-dark"
-              } w-full bg-transparent px-3 py-4 pr-12 text-white placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600 outline-none`}
+              } w-full bg-transparent px-3 py-4 pr-12 text-black dark:text-white placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600 outline-none`}
               type={showPassword ? "text" : "password"}
               placeholder="Şifrenizi girin"
               value={password}

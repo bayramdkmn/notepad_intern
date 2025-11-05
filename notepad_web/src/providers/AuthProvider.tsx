@@ -8,12 +8,14 @@ import {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  username: string;
+  phone?: string;
+  username?: string;
 }
 
 interface AuthContextType {
@@ -23,6 +25,15 @@ interface AuthContextType {
   register: (userData: any) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  updateUser: (data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  }) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,30 +41,61 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Sayfa yüklendiğinde token kontrolü
+    // İlk mount'ta localStorage'dan user bilgilerini HEMEN oku
+    try {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        setIsInitialized(true);
+      }
+    } catch (error) {
+      console.error("Failed to parse saved user:", error);
+      localStorage.removeItem("user");
+    }
+
+    // Token kontrolü yap
     checkAuth();
   }, []);
+
+  // User state değiştiğinde localStorage'a kaydet
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
 
   const checkAuth = async () => {
     try {
       const token = getCookie("auth-token");
       if (token) {
-        // Burada gerçek API çağrısı yapılacak
-        // Şimdilik mock data
-        const mockUser = {
-          id: "1",
-          name: "Demo User",
-          email: "demo@example.com",
-          username: "demouser",
+        // Eğer localStorage'dan user zaten yüklendiyse, backend'e gitme
+        if (isInitialized) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Backend'den kullanıcı bilgilerini al
+        const userData = await api.getCurrentUser();
+        const userInfo = {
+          id: userData.id,
+          name: `${userData.name} ${userData.surname}`,
+          email: userData.email,
+          phone: userData.phone_number || undefined,
+          username: userData.username,
         };
-        setUser(mockUser);
+        setUser(userInfo);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
       setUser(null);
+      deleteCookie("auth-token");
     } finally {
       setIsLoading(false);
     }
@@ -61,22 +103,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // Burada gerçek API çağrısı yapılacak
-      // Şimdilik mock login
-      const mockToken = "mock-jwt-token-" + Date.now();
-      setCookie("auth-token", mockToken, 7); // 7 gün
+      const response = await api.login({ email, password });
 
-      const mockUser = {
-        id: "1",
-        name: "Demo User",
-        email: email,
-        username: email.split("@")[0],
-      };
+      // Token'ı cookie'ye kaydet
+      setCookie("auth-token", response.access_token, 7); // 7 gün
 
-      setUser(mockUser);
-
-      // Cookie'nin set edilmesi için kısa bir bekleme
+      // Token set edildikten sonra kullanıcı bilgilerini backend'den al
       await new Promise((resolve) => setTimeout(resolve, 100));
+
+      try {
+        const userData = await api.getCurrentUser();
+        const userInfo = {
+          id: userData.id,
+          name: `${userData.name} ${userData.surname}`,
+          email: userData.email,
+          phone: userData.phone_number || undefined,
+          username: userData.username,
+        };
+        setUser(userInfo);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+
       router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
@@ -86,25 +134,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (userData: any) => {
     try {
-      // Burada gerçek API çağrısı yapılacak
-      // Şimdilik mock register
-      const mockToken = "mock-jwt-token-" + Date.now();
-      setCookie("auth-token", mockToken, 7);
-
-      const mockUser = {
-        id: "1",
-        name: userData.name + " " + userData.surname,
-        email: userData.email,
+      const response = await api.register({
+        firstName: userData.name,
+        lastName: userData.surname,
         username: userData.username,
-      };
+        email: userData.email,
+        phone: userData.phone,
+        password: userData.password,
+      });
 
-      setUser(mockUser);
+      // Token'ı cookie'ye kaydet
+      setCookie("auth-token", response.access_token, 7);
 
-      // Cookie'nin set edilmesi için kısa bir bekleme
+      // Token set edildikten sonra kullanıcı bilgilerini state'e kaydet
       await new Promise((resolve) => setTimeout(resolve, 100));
+
+      if (response.user) {
+        const userInfo = {
+          id: response.user.id,
+          name: response.user.name,
+          email: response.user.email,
+          phone: response.user.phone_number,
+          username: response.user.username,
+        };
+        setUser(userInfo);
+      }
+
       router.push("/");
     } catch (error) {
       console.error("Registration failed:", error);
+      throw error;
+    }
+  };
+
+  const updateUser = async (data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  }) => {
+    try {
+      const updatedUser = await api.updateProfile({
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+      });
+      const userInfo = {
+        id: updatedUser.id,
+        name: `${updatedUser.name} ${updatedUser.surname}`,
+        email: updatedUser.email,
+        phone: updatedUser.phone_number || undefined,
+        username: updatedUser.username,
+      };
+      setUser(userInfo);
+    } catch (error) {
+      console.error("Update user failed:", error);
+      throw error;
+    }
+  };
+
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ) => {
+    try {
+      await api.changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+    } catch (error) {
+      console.error("Change password failed:", error);
       throw error;
     }
   };
@@ -124,6 +222,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         isAuthenticated: !!user,
+        updateUser,
+        changePassword,
       }}
     >
       {children}

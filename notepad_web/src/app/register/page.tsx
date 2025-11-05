@@ -85,6 +85,20 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Username kontrolü
+    if (formData.username.trim() === "") {
+      alert("Lütfen kullanıcı adınızı girin!");
+      return;
+    }
+    if (formData.username.length < 5) {
+      alert("Kullanıcı adı en az 5 karakter olmalıdır!");
+      return;
+    }
+    if (formData.username.length > 15) {
+      alert("Kullanıcı adı en fazla 15 karakter olmalıdır!");
+      return;
+    }
+
     // Şifre kontrolü
     if (formData.password.length < 6) {
       alert("Şifre en az 6 karakter olmalıdır!");

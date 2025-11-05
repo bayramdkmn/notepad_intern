@@ -1,17 +1,55 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import NotesIcon from "@mui/icons-material/Notes";
 import TagIcon from "@mui/icons-material/Tag";
 import SettingsIcon from "@mui/icons-material/Settings";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
-import LogoutIcon from "@mui/icons-material/Logout";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // User display bilgilerini memo ile cache'le
+  const userDisplay = useMemo(() => {
+    if (!mounted || isLoading) {
+      return {
+        avatar: "",
+        name: "",
+        email: "",
+      };
+    }
+
+    if (user?.name) {
+      const initials = user.name
+        .split(" ")
+        .map((n) => n.charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+
+      return {
+        avatar: initials,
+        name: user.name,
+        email: user.email,
+      };
+    }
+
+    return {
+      avatar: "",
+      name: "",
+      email: "",
+    };
+  }, [user, mounted, isLoading]);
+
   const items = [
     { href: "/", label: "Notlar" },
     { href: "/tags", label: "Etiketler" },
@@ -83,26 +121,35 @@ export default function Sidebar() {
           <NoteAddIcon fontSize="small" />
           <span>Yeni Not Oluştur</span>
         </button>
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="size-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-            {user?.name?.charAt(0) || "U"}
-          </div>
-          <div className="flex flex-col flex-1 min-w-0">
-            <p className="text-gray-900 dark:text-white text-sm font-medium truncate">
-              {user?.name || "User"}
-            </p>
-            <p className="text-gray-500 text-xs font-normal truncate">
-              {user?.email || "user@example.com"}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+        <a
+          href="/profile"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
         >
-          <LogoutIcon fontSize="small" />
-          <p className="text-sm font-medium">Çıkış Yap</p>
-        </button>
+          {userDisplay.avatar ? (
+            <div className="size-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+              {userDisplay.avatar}
+            </div>
+          ) : (
+            <div className="size-8 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse" />
+          )}
+          <div className="flex flex-col flex-1 min-w-0">
+            {userDisplay.name ? (
+              <>
+                <p className="text-gray-900 dark:text-white text-sm font-medium truncate">
+                  {userDisplay.name}
+                </p>
+                <p className="text-gray-500 text-xs font-normal truncate">
+                  {userDisplay.email}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24 animate-pulse" />
+                <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-32 mt-1 animate-pulse" />
+              </>
+            )}
+          </div>
+        </a>
       </div>
     </aside>
   );

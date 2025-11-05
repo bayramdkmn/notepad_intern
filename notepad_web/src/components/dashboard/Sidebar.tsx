@@ -6,9 +6,12 @@ import NotesIcon from "@mui/icons-material/Notes";
 import TagIcon from "@mui/icons-material/Tag";
 import SettingsIcon from "@mui/icons-material/Settings";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const items = [
     { href: "/", label: "Notlar" },
     { href: "/tags", label: "Etiketler" },
@@ -46,28 +49,24 @@ export default function Sidebar() {
                 {it.href === "/tags" && <TagIcon fontSize="small" />}
                 {it.href === "/settings" && <SettingsIcon fontSize="small" />}
                 <p className="text-sm font-medium leading-normal">{it.label}</p>
-                {/* Top edge */}
                 <span
                   aria-hidden
                   className={`pointer-events-none absolute left-0 top-0 h-0.5 w-full bg-neutral-600 origin-left transition-transform duration-500 ${
                     active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                   }`}
                 />
-                {/* Right edge */}
                 <span
                   aria-hidden
                   className={`pointer-events-none absolute right-0 top-0 w-0.5 h-full bg-neutral-600 origin-top transition-transform duration-500 delay-150 ${
                     active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
                   }`}
                 />
-                {/* Bottom edge */}
                 <span
                   aria-hidden
                   className={`pointer-events-none absolute left-0 bottom-0 h-0.5 w-full bg-neutral-600 origin-right transition-transform duration-500 delay-300 ${
                     active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                   }`}
                 />
-                {/* Left edge */}
                 <span
                   aria-hidden
                   className={`pointer-events-none absolute left-0 top-0 w-0.5 h-full bg-neutral-600 origin-bottom transition-transform duration-500 delay-450 ${
@@ -84,15 +83,26 @@ export default function Sidebar() {
           <NoteAddIcon fontSize="small" />
           <span>Yeni Not Oluştur</span>
         </button>
-        <a
-          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10"
-          href="#"
-        >
-          <div className="size-8 rounded-full bg-gray-200 flex items-center justify-center dark:bg-zinc-600"></div>
-          <div className="flex flex-col">
-            <p className="text-gray-500 text-xs font-normal">Profil Ayarları</p>
+        <div className="flex items-center gap-3 px-3 py-2">
+          <div className="size-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+            {user?.name?.charAt(0) || "U"}
           </div>
-        </a>
+          <div className="flex flex-col flex-1 min-w-0">
+            <p className="text-gray-900 dark:text-white text-sm font-medium truncate">
+              {user?.name || "User"}
+            </p>
+            <p className="text-gray-500 text-xs font-normal truncate">
+              {user?.email || "user@example.com"}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+        >
+          <LogoutIcon fontSize="small" />
+          <p className="text-sm font-medium">Çıkış Yap</p>
+        </button>
       </div>
     </aside>
   );

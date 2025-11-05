@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/providers/AuthProvider";
 
 const RegisterPage = () => {
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -19,7 +22,6 @@ const RegisterPage = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Telefon numarası için sadece rakam kontrolü
     if (name === "phone") {
       const numbersOnly = value.replace(/[^0-9]/g, "");
       setFormData({
@@ -80,10 +82,27 @@ const RegisterPage = () => {
     setStep(step - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Burada API çağrısı yapılacak
+
+    // Şifre kontrolü
+    if (formData.password.length < 6) {
+      alert("Şifre en az 6 karakter olmalıdır!");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      alert("Şifreler eşleşmiyor!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await register(formData);
+    } catch (error) {
+      alert("Kayıt başarısız. Lütfen tekrar deneyin.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const steps = [
@@ -127,7 +146,6 @@ const RegisterPage = () => {
           Hesap Oluştur
         </span>
 
-        {/* Progress Indicator */}
         <div className="flex items-center justify-center gap-3 mb-6">
           {steps.map((s, index) => (
             <div key={s.number} className="flex items-center">
@@ -160,7 +178,7 @@ const RegisterPage = () => {
           ))}
         </div>
 
-        {/* Step 1: Kişisel Bilgiler */}
+        {/* Step 1: Personal Information*/}
         {step === 1 && (
           <div className="gap-5 flex flex-col">
             <div>
@@ -194,7 +212,7 @@ const RegisterPage = () => {
           </div>
         )}
 
-        {/* Step 2: İletişim Bilgileri */}
+        {/* Step 2: Contact Information */}
         {step === 2 && (
           <div className="gap-5 flex flex-col">
             <div>
@@ -228,7 +246,7 @@ const RegisterPage = () => {
           </div>
         )}
 
-        {/* Step 3: Hesap Bilgileri */}
+        {/* Step 3: Account Information */}
         {step === 3 && (
           <div className="gap-5 flex flex-col">
             <div>
@@ -270,7 +288,6 @@ const RegisterPage = () => {
           </div>
         )}
 
-        {/* Navigation Buttons */}
         <div className="flex justify-between mt-6">
           {step > 1 && (
             <button
@@ -292,9 +309,10 @@ const RegisterPage = () => {
           ) : (
             <button
               type="submit"
-              className="px-6 py-3 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors ml-auto"
+              disabled={isSubmitting}
+              className="px-6 py-3 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ml-auto"
             >
-              Hesap Oluştur
+              {isSubmitting ? "Hesap Oluşturuluyor..." : "Hesap Oluştur"}
             </button>
           )}
         </div>

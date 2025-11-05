@@ -3,29 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/providers/AuthProvider";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
+
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors = { email: "", password: "" };
 
-    // E-posta kontrolü
     if (!email.trim()) {
       newErrors.email = "E-posta adresi gereklidir";
     } else if (!validateEmail(email)) {
       newErrors.email = "Geçerli bir e-posta adresi girin";
     }
 
-    // Şifre kontrolü
     if (!password) {
       newErrors.password = "Şifre gereklidir";
     } else if (password.length < 6) {
@@ -34,10 +36,18 @@ const LoginPage = () => {
 
     setErrors(newErrors);
 
-    // Hata yoksa giriş yap
     if (!newErrors.email && !newErrors.password) {
-      console.log("Giriş yapılıyor...", { email, password });
-      // Buraya API çağrısı eklenebilir
+      setIsSubmitting(true);
+      try {
+        await login(email, password);
+      } catch (error) {
+        setErrors({
+          ...errors,
+          password: "Giriş başarısız. Bilgilerinizi kontrol edin.",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -170,9 +180,10 @@ const LoginPage = () => {
         <div className="flex w-full justify-center py-3 px-5 text-white font-bold text-xl">
           <button
             type="submit"
+            disabled={isSubmitting}
             className="bg-blue-600 hover:scale-95 disabled:opacity-50 disabled:cursor-not-allowed duration-200 transition-all rounded-xl w-full text-center p-3"
           >
-            Giriş Yap
+            {isSubmitting ? "Giriş yapılıyor..." : "Giriş Yap"}
           </button>
         </div>
       </form>

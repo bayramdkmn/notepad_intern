@@ -44,6 +44,11 @@ class UpdateUserRequest(BaseModel):
     phone_number : str
     email :str
 
+class ResetPasswordRequestProfile(BaseModel):
+    old_password : str
+    new_password : str
+    confirm_password : str
+
 class IdsSchema(BaseModel):
     ids: List[int]
 

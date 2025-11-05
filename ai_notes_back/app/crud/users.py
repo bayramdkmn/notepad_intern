@@ -3,7 +3,7 @@ from fastapi import APIRouter,HTTPException,Depends,Body,Response,Cookie,Request
 import secrets
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
-from ..schemes import UserRequest,Token,PasswordResetRequest,UpdateUserRequest,RequestPasswordResetSchema,ResetPasswordSchema,VerifyOTPSchema
+from ..schemes import UserRequest,Token,PasswordResetRequest,UpdateUserRequest,RequestPasswordResetSchema,ResetPasswordSchema,VerifyOTPSchema,ResetPasswordRequestProfile
 from ..model import Users,TokenBlacklist,Token,PasswordResetToken
 from passlib.context import CryptContext
 from typing import Annotated
@@ -11,6 +11,7 @@ import datetime
 from datetime import timezone,timedelta,datetime
 from jose import jwt,JWTError
 from ..database import get_db
+from fastapi.responses import JSONResponse
 import random
 
 router = APIRouter(
@@ -88,6 +89,33 @@ async def register(request:UserRequest,db:Session=Depends(get_db)):
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.put("/users/reset-password-in-profile")
+async def reset_password_to_profile(
+        reset_request: ResetPasswordRequestProfile,
+        dependency: user_dependency,
+        db: Session = Depends(get_db)
+):
+    user = db.query(Users).filter(Users.id.__eq__(dependency.get("id"))).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not bcrypt_context.verify(reset_request.old_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Old password is not correct")
+
+    if reset_request.new_password != reset_request.confirm_password:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+
+    if reset_request.old_password == reset_request.new_password:
+        raise HTTPException(status_code=400, detail="New password must differ from old password")
+
+    user.password_hash = bcrypt_context.hash(reset_request.new_password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return JSONResponse(status_code=200, content={"detail": "Password updated successfully"})
 
 @router.post("/user/login/")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(),db: Session = Depends(get_db)):

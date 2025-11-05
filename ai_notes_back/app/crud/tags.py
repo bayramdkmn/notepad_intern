@@ -54,7 +54,9 @@ async def delete_tag_by_user_request(tag_id:int,dependency:user_dependency,db:Se
 async def get_all_tags_by_user(dependency:user_dependency,db:Session=Depends(get_db)):
     db_tags = db.query(Tag).filter(Tag.user_id.__eq__(dependency.get("id"))).all()
     if not db_tags:
-        raise HTTPException(status_code=404,detail="Tags is empty into database.")
+        return {
+            "tags": []
+        }
     return db_tags
 
 @router.get("/tag/get-tag-by-id/{tag_id}")

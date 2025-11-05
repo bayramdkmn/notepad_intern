@@ -1,48 +1,24 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
-  --foreground: #0f172a; /* slate-900 */
-  --text-primary: #0f172a; /* slate-900 */
-  --text-secondary: #475569; /* slate-600 */
-  --surface: #ffffff; /* card/input */
-  --surface-muted: #f1f5f9; /* slate-100 */
-  --border: #e2e8f0; /* slate-200 */
-  --accent: #2563eb; /* blue-600 */
+  --foreground: #0f172a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-surface: var(--surface);
-  --color-surface-muted: var(--surface-muted);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 .dark {
-  --background: #0b0f1a; /* zinc-950-ish */
-  --foreground: #e5e7eb; /* zinc-200 */
-  --text-primary: #e5e7eb; /* zinc-200 */
-  --text-secondary: #a1a1aa; /* zinc-400 */
-  --surface: #0f172a; /* slate-900 */
-  --surface-muted: #18181b; /* zinc-900 */
-  --border: #27272a; /* zinc-800 */
-  --accent: #60a5fa; /* blue-400 */
+  --background: #0b0f1a;
+  --foreground: #e5e7eb;
 }
 
-
-html, body {
-  background-color: var(--background) !important;
-  color: var(--color-text-primary) !important;
-}
-
+html,
 body {
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
 
 
 .text-primary { color: var(--color-text-primary) }

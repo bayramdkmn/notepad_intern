@@ -15,7 +15,7 @@ export default function Sidebar() {
     { href: "/settings", label: "Ayarlar" },
   ];
   return (
-    <aside className="hidden md:flex w-full md:w-1/4 lg:w-1/5 xl:w-1/6 flex-col sticky top-0 self-start min-h-screen bg-white p-2 text-gray-800 border-r border-gray-200 dark:bg-[#1A1A1A] dark:text-[#E0E0E0] dark:border-[#424242]">
+    <aside className="hidden md:flex w-full md:w-1/4 lg:w-1/5 xl:w-1/6 flex-col sticky top-0 self-start min-h-screen bg-white p-2 text-gray-800 border-r border-gray-300 dark:bg-[#1A1A1A] dark:text-[#E0E0E0] dark:border-[#424242]">
       <div className="flex flex-col gap-8">
         <div className="flex gap-3 items-center px-2">
           <div className="rounded-lg size-10 flex items-center justify-center bg-primary/10">
@@ -38,8 +38,8 @@ export default function Sidebar() {
             const base =
               "relative group overflow-hidden flex items-center gap-3 px-4 py-2 rounded-lg  transition-all duration-300 ease-out";
             const cls = active
-              ? `${base} bg-primary/10 text-primary dark:bg-white/10 dark:text-white`
-              : `${base} hover:bg-gray-100 text-gray-700 dark:text-[#E0E0E0] dark:hover:bg-white/10`;
+              ? `${base} bg-gray-300 text-primary dark:bg-white/10 dark:text-white`
+              : `${base} hover:bg-gray-200 text-gray-700 dark:text-[#E0E0E0] dark:hover:bg-white/10`;
             return (
               <a key={it.href} className={cls} href={it.href}>
                 {it.href === "/" && <NotesIcon fontSize="small" />}
@@ -79,8 +79,8 @@ export default function Sidebar() {
           })}
         </nav>
       </div>
-      <div className="mt-auto flex flex-col gap-3 border-t border-gray-200 pt-4 dark:border-[#424242]">
-        <button className="flex items-center justify-center gap-2 py-3 hover:scale-95 duration-300 border-2 border-neutral-600 px-6 w-full shrink-0 bg-primary text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-primary/90 transition-all">
+      <div className="mt-auto flex flex-col gap-3 border-t border-gray-300 pt-4 dark:border-[#424242]">
+        <button className="flex items-center justify-center gap-2 py-3 hover:scale-95 duration-300 px-6 w-full shrink-0 bg-blue-500 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-primary/90 transition-all">
           <NoteAddIcon fontSize="small" />
           <span>Yeni Not Oluştur</span>
         </button>

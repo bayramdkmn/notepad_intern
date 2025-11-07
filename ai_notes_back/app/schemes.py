@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional,List
+from enum import Enum
 
 
 class Token(BaseModel):
@@ -27,10 +28,16 @@ class LoginRequest(BaseModel):
     email : EmailStr
     password_hash : str = Field(..., min_length=6)
 
+
+class PriorityEnum(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+
 class NoteRequest(BaseModel):
     title: str
     content: str
-    priority : str = "Low"
+    priority: PriorityEnum = PriorityEnum.LOW
     is_feature_note: Optional[bool] = False
     feature_date: Optional[datetime] = None
     tags: Optional[List[str]] = []

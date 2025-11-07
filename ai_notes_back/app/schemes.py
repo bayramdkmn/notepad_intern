@@ -18,16 +18,20 @@ class UserRequest(BaseModel):
     role : Optional[str] = "user"
     phone_number : Optional[str] = None
 
-
-class LoginRequest(BaseModel):
-    email : EmailStr
-    password_hash : str = Field(..., min_length=6)
-
-
 class PriorityEnum(Enum):
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
+
+class UpdateNotesRequest(BaseModel):
+    title : str
+    content :str
+    priority : PriorityEnum
+    tags: Optional[List[str]] = []
+
+class LoginRequest(BaseModel):
+    email : EmailStr
+    password_hash : str = Field(..., min_length=6)
 
 class NoteRequest(BaseModel):
     title: str
@@ -37,11 +41,6 @@ class NoteRequest(BaseModel):
     feature_date: Optional[datetime] = None
     tags: Optional[List[str]] = []
 
-class UpdateNotesRequest(BaseModel):
-    title : str
-    content :str
-    priority : PriorityEnum
-    tags: Optional[List[str]] = []
 
 class TagCreateRequest(BaseModel):
     name: str

@@ -31,6 +31,7 @@ export default function NewNotePage() {
   const [showTagInput, setShowTagInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Medium");
 
   // İleri tarihli not state'leri
   const [isFutureNote, setIsFutureNote] = useState(false);
@@ -89,6 +90,7 @@ export default function NewNotePage() {
         title: title.trim(),
         content: content.trim(),
         tags: selectedTags,
+        priority: priority,
         is_feature_note: isFutureNote,
         feature_date:
           isFutureNote && futureDate
@@ -249,6 +251,153 @@ export default function NewNotePage() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Priority Section */}
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-zinc-700">
+            <div className="flex items-center gap-2 mb-3">
+              <svg
+                className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+                />
+              </svg>
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                Öncelik Seviyesi
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setPriority("Low")}
+                className={`flex flex-col items-center justify-center px-3 py-3 sm:py-4 rounded-lg border-2 transition-all ${
+                  priority === "Low"
+                    ? "border-green-500 bg-green-50 dark:bg-green-900/30 shadow-md"
+                    : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-green-300 dark:hover:border-green-700"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-1 sm:mb-2 ${
+                    priority === "Low"
+                      ? "bg-green-500 text-white"
+                      : "bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"
+                  }`}
+                >
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
+                  </svg>
+                </div>
+                <span
+                  className={`text-xs sm:text-sm font-semibold ${
+                    priority === "Low"
+                      ? "text-green-700 dark:text-green-300"
+                      : "text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  Düşük
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPriority("Medium")}
+                className={`flex flex-col items-center justify-center px-3 py-3 sm:py-4 rounded-lg border-2 transition-all ${
+                  priority === "Medium"
+                    ? "border-amber-500 bg-amber-50 dark:bg-amber-900/30 shadow-md"
+                    : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-amber-300 dark:hover:border-amber-700"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-1 sm:mb-2 ${
+                    priority === "Medium"
+                      ? "bg-amber-500 text-white"
+                      : "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400"
+                  }`}
+                >
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 12h14"
+                    />
+                  </svg>
+                </div>
+                <span
+                  className={`text-xs sm:text-sm font-semibold ${
+                    priority === "Medium"
+                      ? "text-amber-700 dark:text-amber-300"
+                      : "text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  Orta
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPriority("High")}
+                className={`flex flex-col items-center justify-center px-3 py-3 sm:py-4 rounded-lg border-2 transition-all ${
+                  priority === "High"
+                    ? "border-red-500 bg-red-50 dark:bg-red-900/30 shadow-md"
+                    : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-red-300 dark:hover:border-red-700"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-1 sm:mb-2 ${
+                    priority === "High"
+                      ? "bg-red-500 text-white"
+                      : "bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"
+                  }`}
+                >
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 10l7-7m0 0l7 7m-7-7v18"
+                    />
+                  </svg>
+                </div>
+                <span
+                  className={`text-xs sm:text-sm font-semibold ${
+                    priority === "High"
+                      ? "text-red-700 dark:text-red-300"
+                      : "text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  Yüksek
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Future Note Section */}

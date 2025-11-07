@@ -115,6 +115,7 @@ async def create_note(dependency: user_dependency, note_request: NoteRequest, db
     db.commit()
     db.refresh(db_notes)
 
+
     return {
             "id": db_notes.id,
             "title": db_notes.title,

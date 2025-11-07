@@ -8,6 +8,12 @@ import SaveIcon from "@mui/icons-material/Save";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs, { Dayjs } from "dayjs";
+import "dayjs/locale/tr";
 
 interface Tag {
   id: number;
@@ -25,6 +31,11 @@ export default function NewNotePage() {
   const [showTagInput, setShowTagInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // İleri tarihli not state'leri
+  const [isFutureNote, setIsFutureNote] = useState(false);
+  const [futureDate, setFutureDate] = useState<Dayjs | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     fetchTags();
@@ -78,6 +89,11 @@ export default function NewNotePage() {
         title: title.trim(),
         content: content.trim(),
         tags: selectedTags,
+        is_feature_note: isFutureNote,
+        feature_date:
+          isFutureNote && futureDate
+            ? futureDate.toISOString()
+            : new Date().toISOString(),
       });
       router.push("/");
     } catch (error) {
@@ -232,6 +248,158 @@ export default function NewNotePage() {
                   </button>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* Future Note Section */}
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-zinc-700">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <CalendarMonthIcon
+                    className="text-purple-600 dark:text-purple-400"
+                    fontSize="small"
+                  />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                    İleri Tarihli Not
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Gelecek tarihli hatırlatma ekle
+                  </div>
+                </div>
+              </div>
+
+              {/* Toggle Switch */}
+              <button
+                onClick={() => {
+                  setIsFutureNote(!isFutureNote);
+                  if (!isFutureNote) {
+                    setShowDatePicker(true);
+                  } else {
+                    setShowDatePicker(false);
+                    setFutureDate(null);
+                  }
+                }}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-200 ${
+                  isFutureNote
+                    ? "bg-purple-600 shadow-lg shadow-purple-500/50"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
+                    isFutureNote ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Modern MUI Date Picker */}
+            {isFutureNote && showDatePicker && (
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                adapterLocale="tr"
+              >
+                <div className="mt-4 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 sm:p-5 border-2 border-purple-200 dark:border-purple-700">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
+                        <span className="text-sm font-bold text-purple-900 dark:text-purple-200">
+                          Hatırlatma Zamanını Seçin
+                        </span>
+                      </div>
+
+                      <div className="relative">
+                        <DateTimePicker
+                          value={futureDate}
+                          onChange={(newValue) => setFutureDate(newValue)}
+                          minDateTime={dayjs()}
+                          ampm={false}
+                          format="DD MMMM YYYY - HH:mm"
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              size: "medium",
+                              InputProps: {
+                                readOnly: true,
+                              },
+                              sx: {
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: "12px",
+                                  backgroundColor: "white",
+                                  cursor: "pointer",
+                                  "& fieldset": {
+                                    borderColor: "#c084fc",
+                                    borderWidth: "2px",
+                                  },
+                                  "&:hover fieldset": {
+                                    borderColor: "#a855f7",
+                                  },
+                                  "&.Mui-focused fieldset": {
+                                    borderColor: "#9333ea",
+                                  },
+                                },
+                                "& .MuiInputBase-input": {
+                                  cursor: "pointer",
+                                },
+                                "& .MuiInputLabel-root": {
+                                  color: "#7e22ce",
+                                },
+                                "& .MuiInputLabel-root.Mui-focused": {
+                                  color: "#6b21a8",
+                                },
+                              },
+                            },
+                            openPickerButton: {
+                              sx: {
+                                color: "#9333ea",
+                              },
+                            },
+                          }}
+                          label="Tarih ve Saat Seçin"
+                        />
+                      </div>
+
+                      {futureDate && (
+                        <div className="flex items-start gap-3 px-4 py-3 bg-white dark:bg-purple-900/30 border-2 border-purple-300 dark:border-purple-600 rounded-xl animate-in fade-in duration-200 shadow-sm">
+                          <div className="flex-shrink-0 mt-0.5">
+                            <svg
+                              className="w-5 h-5 text-purple-600 dark:text-purple-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">
+                              Seçilen Hatırlatma Zamanı
+                            </div>
+                            <div className="text-sm font-bold text-purple-900 dark:text-purple-200 break-words">
+                              📅{" "}
+                              {futureDate
+                                .locale("tr")
+                                .format("DD MMMM YYYY, dddd")}
+                            </div>
+                            <div className="text-sm font-semibold text-purple-700 dark:text-purple-400 mt-1">
+                              🕐 Saat: {futureDate.format("HH:mm")}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </LocalizationProvider>
             )}
           </div>
 

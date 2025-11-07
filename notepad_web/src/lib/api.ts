@@ -79,6 +79,19 @@ class ApiClient {
       });
 
       if (!response.ok) {
+        // 401 Unauthorized - Token geçersiz veya yok
+        if (response.status === 401) {
+          // Token'ı temizle
+          this.clearToken();
+          
+          // Login sayfasına yönlendir (sadece browser'da)
+          if (typeof window !== "undefined") {
+            window.location.href = "/login";
+          }
+          
+          throw new Error("Oturum süreniz doldu. Lütfen tekrar giriş yapın.");
+        }
+
         const error: ApiError = await response.json();
         throw new Error(error.detail || "Bir hata oluştu");
       }
@@ -98,6 +111,11 @@ class ApiClient {
       .split("; ")
       .find((row) => row.startsWith("auth-token="));
     return cookie ? cookie.split("=")[1] : null;
+  }
+
+  private clearToken(): void {
+    if (typeof document === "undefined") return;
+    document.cookie = "auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   }
 
   // Auth endpoints
@@ -124,7 +142,6 @@ class ApiClient {
   }
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    // Önce kullanıcıyı kaydet
     const registerResponse = await this.request<UserResponse>(
       "/auth/user/register/",
       {
@@ -140,7 +157,6 @@ class ApiClient {
       }
     );
 
-    // Sonra otomatik login yap
     const loginResponse = await this.login({
       email: data.email,
       password: data.password,
@@ -188,9 +204,13 @@ class ApiClient {
   }
 
   async logout(): Promise<void> {
-    return this.request<void>("/auth/users/logout/", {
-      method: "POST",
-    });
+    try {
+      await this.request<void>("/auth/users/logout/", {
+        method: "POST",
+      });
+    } finally {
+      this.clearToken();
+    }
   }
 
   // Notes endpoints
@@ -199,7 +219,6 @@ class ApiClient {
       const response = await this.request<any[]>("/notes/notes/get-all-notes/");
       return Array.isArray(response) ? response : [];
     } catch (error) {
-      // Eğer "Empty" veya "empty" hatası geliyorsa, boş array dön
       if (error instanceof Error && (error.message.toLowerCase().includes("empty") || error.message.toLowerCase().includes("database"))) {
         return [];
       }
@@ -211,10 +230,18 @@ class ApiClient {
     title: string;
     content: string;
     tags?: string[];
+    is_feature_note?: boolean;
+    feature_date?: string;
   }): Promise<any> {
     return this.request<any>("/notes/notes/create-note/", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        title: data.title,
+        content: data.content,
+        is_feature_note: data.is_feature_note || false,
+        feature_date: data.feature_date || new Date().toISOString(),
+        tags: data.tags || [],
+      }),
     });
   }
 
@@ -263,7 +290,6 @@ class ApiClient {
       const response = await this.request<any[]>("/tags/tag/get-all-tags");
       return Array.isArray(response) ? response : [];
     } catch (error) {
-      // Eğer "Empty" veya "empty" hatası geliyorsa, boş array dön
       if (error instanceof Error && (error.message.toLowerCase().includes("empty") || error.message.toLowerCase().includes("database"))) {
         return [];
       }

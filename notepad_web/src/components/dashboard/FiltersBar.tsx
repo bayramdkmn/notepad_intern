@@ -123,12 +123,13 @@ export default function FiltersBar({
           onClick={() => setShowFutureNotes(!showFutureNotes)}
           className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
             showFutureNotes
-              ? "bg-blue-600 text-white"
+              ? "bg-blue-500 text-white shadow-lg shadow-purple-500/30"
               : "bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700"
           }`}
         >
           <EventNoteIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="hidden sm:inline">Gelecek Notları Göster</span>
+          <span className="hidden sm:inline">İleri Tarihli</span>
+          <span className="sm:hidden">İleri Tarih</span>
         </button>
         {/* Clear Filters */}
         {hasActiveFilters && (

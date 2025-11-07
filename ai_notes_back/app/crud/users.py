@@ -124,7 +124,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),db: Session = D
     if not user or not bcrypt_context.verify(form_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="User or password is incorrect")
 
-    token = create_access_token(user.email, user.id, user.role,timedelta(minutes=20))
+    token = create_access_token(user.email, user.id, user.role,timedelta(minutes=1440))
     refresh_token = create_refresh_token(user.email, user.id,user.role)
 
     decoded_refresh = jwt.decode(refresh_token, REFRESH_TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
@@ -163,7 +163,7 @@ async def refresh_token_endpoint(refresh_token: str = Body(..., embed=True),  db
     if not user:
         raise HTTPException(404, detail="User not found")
 
-    new_access_token = create_access_token(user.email, user.id, timedelta(minutes=20))
+    new_access_token = create_access_token(user.email, user.id, timedelta(minutes=1440))
 
     return {"access_token": new_access_token, "token_type": "bearer"}
 
@@ -234,7 +234,7 @@ async def update_user_for_profile_page(profile_request:UpdateUserRequest,depende
                 token=active_refresh.token
             )
             db.add(blacklisted_token)
-        new_access_token = create_access_token(user.email, user.id, timedelta(minutes=20))
+        new_access_token = create_access_token(user.email, user.id, timedelta(minutes=1440))
         new_refresh_token = create_refresh_token(user.email, user.id)
         decoded_refresh = jwt.decode(new_refresh_token, ACCESS_TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
         expires_at = datetime.fromtimestamp(decoded_refresh["exp"], tz=timezone.utc)

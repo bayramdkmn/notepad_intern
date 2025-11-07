@@ -24,6 +24,8 @@ interface Note {
   tags?: Tag[];
   is_pinned?: boolean;
   is_favorite?: boolean;
+  is_feature_note?: boolean;
+  feature_date?: string | null;
 }
 
 interface NotesGridProps {
@@ -108,8 +110,12 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
     if (filters.showFutureNotesOnly) {
       const now = new Date();
       filtered = filtered.filter((note) => {
-        const noteDate = new Date(note.created_at);
-        return noteDate > now;
+        // İleri tarihli olarak işaretlenmiş VE feature_date gelecekte olan notlar
+        if (note.is_feature_note && note.feature_date) {
+          const featureDate = new Date(note.feature_date);
+          return featureDate > now;
+        }
+        return false;
       });
     }
 
@@ -236,17 +242,30 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string, isFutureNote?: boolean) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMs = date.getTime() - now.getTime(); // İleri tarih için pozitif olacak
+    const diffSeconds = Math.floor(Math.abs(diffMs) / 1000);
     const diffMinutes = Math.floor(diffSeconds / 60);
     const diffHours = Math.floor(diffMinutes / 60);
     const diffDays = Math.floor(diffHours / 24);
     const diffWeeks = Math.floor(diffDays / 7);
     const diffMonths = Math.floor(diffDays / 30);
 
+    // İleri tarihli notlar için
+    if (isFutureNote && diffMs > 0) {
+      if (diffSeconds < 60) return "Az sonra";
+      if (diffMinutes < 60) return `${diffMinutes} dakika sonra`;
+      if (diffHours < 24) return `${diffHours} saat sonra`;
+      if (diffDays === 1) return "Yarın";
+      if (diffDays < 7) return `${diffDays} gün sonra`;
+      if (diffWeeks < 4) return `${diffWeeks} hafta sonra`;
+      if (diffMonths < 12) return `${diffMonths} ay sonra`;
+      return `${Math.floor(diffMonths / 12)} yıl sonra`;
+    }
+
+    // Geçmiş tarihler için (normal notlar)
     if (diffSeconds < 60) return "Az önce";
     if (diffMinutes < 60) return `${diffMinutes} dakika önce`;
     if (diffHours < 24) return `${diffHours} saat önce`;
@@ -262,7 +281,9 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
 
   if (isLoading) {
@@ -379,13 +400,31 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
               <div
                 key={note.id}
                 onClick={() => setSelectedNote(note)}
-                className="bg-white dark:bg-zinc-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-zinc-700 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all cursor-pointer group"
+                className={`bg-white dark:bg-zinc-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border transition-all cursor-pointer group relative ${
+                  note.is_feature_note && note.feature_date
+                    ? "border-slate-300 dark:border-slate-600 hover:shadow-lg hover:shadow-slate-400/10 hover:border-slate-400 dark:hover:border-slate-500"
+                    : "border-gray-200 dark:border-zinc-700 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500"
+                }`}
               >
-                <div className="flex items-start justify-between gap-3 sm:gap-4">
+                <div className="flex  justify-between h-full gap-3 sm:gap-4">
+                  {/* Future Note Indicator on Left */}
+                  {note.is_feature_note && note.feature_date && (
+                    <div className="flex-shrink-0 pt-1">
+                      <div className="w-1 h-full min-h-[60px] bg-gradient-to-b from-slate-400 to-slate-500 rounded-full shadow-sm shadow-slate-400/20"></div>
+                    </div>
+                  )}
+
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1.5 sm:mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate sm:whitespace-normal">
-                      {note.title}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate sm:whitespace-normal">
+                        {note.title}
+                      </h3>
+                      {note.is_feature_note && note.feature_date && (
+                        <span className="flex-shrink-0 text-slate-700 dark:text-slate-300 text-xs font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800/50 rounded">
+                          İLERİ TARİHLİ
+                        </span>
+                      )}
+                    </div>
                     <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2 mb-3 sm:mb-4">
                       {note.content}
                     </p>
@@ -402,13 +441,50 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
                       </div>
                     )}
                   </div>
-                  <div className="text-right text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
-                    <div className="text-gray-700 dark:text-gray-300 font-medium">
-                      {formatDate(note.updated_at)}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5 sm:mt-1">
-                      {formatFullDate(note.updated_at)}
-                    </div>
+                  <div className="text-right text-xs sm:text-sm flex-shrink-0">
+                    {note.is_feature_note && note.feature_date ? (
+                      <div className="space-y-1 flex items-end flex-col gap-2">
+                        <div className="flex flex-row items-center gap-1.5 w-min px-2 sm:px-3 py-1 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/30 dark:to-slate-700/30 border-2 border-slate-300 dark:border-slate-600 rounded-full shadow-sm shadow-slate-200/30 dark:shadow-slate-900/20">
+                          <svg
+                            className="w-3 h-3 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            {formatFullDate(note.feature_date)}
+                          </span>
+                        </div>
+
+                        <div className="text-slate-600 dark:text-slate-400 text-xs">
+                          Kalan Süre: {formatDate(note.feature_date, true)}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                          Oluşturulma Tarihi: {formatFullDate(note.updated_at)}{" "}
+                          ({formatDate(note.created_at, false)})
+                        </div>
+                        {/* <div className="text-gray-500 dark:text-gray-500 text-[10px] pt-1 border-t border-slate-200 dark:border-slate-700">
+                          Oluşturuldu: {formatDate(note.created_at, false)}
+                        </div> */}
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                          Oluşturulma Tarihi: {formatFullDate(note.updated_at)}{" "}
+                          ({formatDate(note.created_at, false)})
+                        </div>
+                        {/* <div className="text-gray-500 dark:text-gray-500 text-[10px] pt-1 border-t border-slate-200 dark:border-slate-700">
+                          Oluşturuldu: {formatDate(note.created_at, false)} 
+                        </div> */}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

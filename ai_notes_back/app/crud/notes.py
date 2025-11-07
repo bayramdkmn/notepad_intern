@@ -26,7 +26,9 @@ user_dependency = Annotated[dict,Depends(get_current_user)]
 async def get_all_notes(dependency:user_dependency,db:Session=Depends(get_db)):
     db_notes = db.query(Notes).filter(Notes.user_id.__eq__(dependency.get("id"))).all()
     if not db_notes:
-        raise HTTPException(status_code=404, detail="Notes is Empty!")
+        return {
+            "notes" : []
+        }
     notes_list = []
     for note in db_notes:
         notes_list.append({

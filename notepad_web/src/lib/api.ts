@@ -230,6 +230,7 @@ class ApiClient {
     title: string;
     content: string;
     tags?: string[];
+    priority?: "Low" | "Medium" | "High";
     is_feature_note?: boolean;
     feature_date?: string;
   }): Promise<any> {
@@ -238,6 +239,7 @@ class ApiClient {
       body: JSON.stringify({
         title: data.title,
         content: data.content,
+        priority: data.priority || "Low",
         is_feature_note: data.is_feature_note || false,
         feature_date: data.feature_date || new Date().toISOString(),
         tags: data.tags || [],
@@ -247,10 +249,15 @@ class ApiClient {
 
   async updateNote(
     id: number,
-    data: { title?: string; content?: string; tags?: string[] }
+    data: { 
+      title?: string; 
+      content?: string; 
+      tags?: string[];
+      priority?: "Low" | "Medium" | "High";
+    }
   ): Promise<any> {
     return this.request<any>(`/notes/notes/update-note/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(data),
     });
   }
@@ -263,7 +270,7 @@ class ApiClient {
 
   async togglePinNote(id: number): Promise<any> {
     return this.request<any>(`/notes/notes/toggle-pin/${id}`, {
-      method: "POST",
+      method: "PATCH",
     });
   }
 
@@ -282,6 +289,30 @@ class ApiClient {
   async searchNotes(query: string): Promise<any[]> {
     if (!query.trim()) return [];
     return this.request<any[]>(`/notes/notes/search/?query=${encodeURIComponent(query)}`);
+  }
+
+  async getPinnedNotes(): Promise<any[]> {
+    try {
+      const response = await this.request<any[]>("/notes/notes/get-pinned-notes");
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      if (error instanceof Error && (error.message.toLowerCase().includes("empty") || error.message.toLowerCase().includes("database"))) {
+        return [];
+      }
+      throw error;
+    }
+  }
+
+  async getFutureNotes(): Promise<any[]> {
+    try {
+      const response = await this.request<any[]>("/notes/notes/get-all-feature-notes");
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      if (error instanceof Error && (error.message.toLowerCase().includes("empty") || error.message.toLowerCase().includes("database"))) {
+        return [];
+      }
+      throw error;
+    }
   }
 
   // Tags endpoints
@@ -319,3 +350,4 @@ class ApiClient {
 }
 
 export const api = new ApiClient(API_URL);
+export const apiClient = api; // Alias for compatibility

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import PsychologyIcon from "@mui/icons-material/Psychology";
@@ -115,7 +116,7 @@ export default function Sidebar() {
                 ? `${base} bg-gray-300 text-primary dark:bg-white/10 dark:text-white`
                 : `${base} hover:bg-gray-200 text-gray-700 dark:text-[#E0E0E0] dark:hover:bg-white/10`;
               return (
-                <a
+                <Link
                   key={it.href}
                   className={cls}
                   href={it.href}
@@ -127,7 +128,7 @@ export default function Sidebar() {
                   <p className="text-sm font-medium leading-normal">
                     {it.label}
                   </p>
-                </a>
+                </Link>
               );
             })}
           </nav>
@@ -143,7 +144,7 @@ export default function Sidebar() {
             <NoteAddIcon fontSize="small" />
             <span>Yeni Not Oluştur</span>
           </button>
-          <a
+          <Link
             href="/profile"
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10"
           >
@@ -171,7 +172,7 @@ export default function Sidebar() {
                 </>
               )}
             </div>
-          </a>
+          </Link>
         </div>
       </aside>
 
@@ -202,10 +203,11 @@ export default function Sidebar() {
                 ? `${base} bg-gray-300 text-primary dark:bg-white/10 dark:text-white`
                 : `${base} hover:bg-gray-200 text-gray-700 dark:text-[#E0E0E0] dark:hover:bg-white/10`;
               return (
-                <a key={it.href} className={cls} href={it.href}>
+                <Link key={it.href} className={cls} href={it.href}>
                   {it.href === "/" && <NotesIcon fontSize="small" />}
                   {it.href === "/tags" && <TagIcon fontSize="small" />}
                   {it.href === "/settings" && <SettingsIcon fontSize="small" />}
+
                   <p className="text-sm font-medium leading-normal">
                     {it.label}
                   </p>
@@ -241,7 +243,7 @@ export default function Sidebar() {
                         : "scale-y-0 group-hover:scale-y-100"
                     }`}
                   />
-                </a>
+                </Link>
               );
             })}
           </nav>
@@ -254,7 +256,7 @@ export default function Sidebar() {
             <NoteAddIcon fontSize="small" />
             <span>Yeni Not Oluştur</span>
           </button>
-          <a
+          <Link
             href="/profile"
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
@@ -282,7 +284,7 @@ export default function Sidebar() {
                 </>
               )}
             </div>
-          </a>
+          </Link>
         </div>
       </aside>
     </>

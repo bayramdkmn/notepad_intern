@@ -18,21 +18,21 @@ class UserRequest(BaseModel):
     role : Optional[str] = "user"
     phone_number : Optional[str] = None
 
+class PriorityEnum(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+
 class UpdateNotesRequest(BaseModel):
     title : str
     content :str
-    priority : str
+    priority : PriorityEnum
     tags: Optional[List[str]] = []
 
 class LoginRequest(BaseModel):
     email : EmailStr
     password_hash : str = Field(..., min_length=6)
 
-
-class PriorityEnum(str, Enum):
-    LOW = "Low"
-    MEDIUM = "Medium"
-    HIGH = "High"
 
 class NoteRequest(BaseModel):
     title: str

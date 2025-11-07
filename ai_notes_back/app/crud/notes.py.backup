@@ -145,27 +145,20 @@ async def update_notes_with_id_by_creator(note_id:int,dependency:user_dependency
     db_note.title = update_body.title
     db_note.content = update_body.content
     db_note.priority = update_body.priority
-    if update_body.tags is not None:
-        # Mevcut tag'leri temizle
-        db_note.tags.clear()
-        
-        # Veritabanında var olan tag'leri bul
+    if update_body.tags:
         existing_tags = db.query(Tag).filter(Tag.name.in_(update_body.tags)).all()
         existing_tag_names = {tag.name for tag in existing_tags}
 
-        # Yeni tag'leri oluştur
         new_tags = [
             Tag(name=tag_name,user_id=dependency.get("id")) for tag_name in update_body.tags
             if tag_name not in existing_tag_names
         ]
 
-        if new_tags:
-            db.add_all(new_tags)
-            db.commit()
-            db.refresh(db_note)
+        db.add_all(new_tags)
+        db.commit()
+        db.refresh(db_note)
 
-        # Tag'leri ekle (extend yerine atama)
-        db_note.tags = existing_tags + new_tags
+        db_note.tags.extend(existing_tags + new_tags)
 
     db.add(db_note)
     db.commit()
@@ -174,10 +167,6 @@ async def update_notes_with_id_by_creator(note_id:int,dependency:user_dependency
         "id": db_note.id,
         "title": db_note.title,
         "content": db_note.content,
-        "priority": db_note.priority,
-        "is_pinned": db_note.is_pinned,
-        "is_feature_note": db_note.is_feature_note,
-        "feature_date": db_note.feature_date.isoformat() if db_note.feature_date else None,
         "tags": [{"id": tag.id, "name": tag.name} for tag in db_note.tags],
         "created_at": db_note.created_at,
         "updated_at": db_note.updated_at,

@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { NotesProvider } from "@/providers/NotesProvider";
 
 export const metadata: Metadata = {
   title: "Notepad - Your Personal Notes App",
@@ -27,7 +28,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased transition-colors bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <NotesProvider>{children}</NotesProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

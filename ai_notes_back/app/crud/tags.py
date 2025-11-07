@@ -37,17 +37,42 @@ async def create_tag_for_notes_by_user(tag:TagCreateRequest,dependency:user_depe
     }
 
 @router.delete("/tag/delete/{tag_id}")
-async def delete_tag_by_user_request(tag_id:int,dependency:user_dependency,db:Session=Depends(get_db)):
-    tag = db.query(Tag).filter(Tag.id.__eq__(tag_id),Tag.user_id.__eq__(dependency.get("id"))).first()
+async def delete_tag_by_user_request(tag_id: int, dependency: user_dependency, db: Session = Depends(get_db)):
+    tag = db.query(Tag).filter(
+        Tag.id.__eq__(tag_id),
+        Tag.user_id.__eq__(dependency.get("id"))
+    ).first()
+
     if not tag:
-        raise HTTPException(status_code=404,detail="Tag not found!")
+        raise HTTPException(status_code=404, detail="Tag not found!")
+    notes_with_tag = tag.notes[:]
+    notes_to_delete = []
+
+    for note in notes_with_tag:
+        remaining_tags = [t for t in note.tags if t.id != tag.id]
+        if not remaining_tags:
+            notes_to_delete.append(note)
+
+    for note in notes_with_tag:
+        if tag in note.tags:
+            note.tags.remove(tag)
+
+    for note in notes_to_delete:
+        db.delete(note)
+
     db.delete(tag)
+
     db.commit()
+
     return {
-        "message" : "Deleted successfully!",
-        "id" : tag.id,
-        "name" : tag.name,
-        "deleted_at":tag.deleted_at
+        "message": "Tag and related notes deleted successfully!",
+        "deleted_tag": {
+            "id": tag.id,
+            "name": tag.name
+        },
+        "deleted_notes": [
+            {"id": note.id, "title": note.title} for note in notes_to_delete
+        ]
     }
 
 @router.get("/tag/get-all-tags")

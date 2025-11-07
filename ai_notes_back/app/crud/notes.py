@@ -129,7 +129,7 @@ async def update_notes_with_id_by_creator(note_id:int,dependency:user_dependency
         existing_tag_names = {tag.name for tag in existing_tags}
 
         new_tags = [
-            Tag(name=tag_name) for tag_name in update_body.tags
+            Tag(name=tag_name,user_id=dependency.get("id")) for tag_name in update_body.tags
             if tag_name not in existing_tag_names
         ]
 
@@ -442,7 +442,7 @@ async def get_note_by_tag_name_from_database(tag_name:str,dependency:user_depend
     })
     return note_list
 
-@router.get("/notes/get-all-feature-notes")
+@router.get("/notes/get-all-feature-notes/")
 async def get_all_feature_notes(dependency:user_dependency,db:Session=Depends(get_db)):
     feature_notes = db.query(Notes).filter(Notes.user_id.__eq__(dependency.get("id")),Notes.is_feature_note.__eq__(True)).all()
     if not feature_notes:
@@ -465,4 +465,5 @@ async def get_all_feature_notes(dependency:user_dependency,db:Session=Depends(ge
         })
 
     return notes_list
+
 

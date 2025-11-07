@@ -43,7 +43,8 @@ async def get_all_notes(dependency:user_dependency,db:Session=Depends(get_db)):
             "is_pinned":note.is_pinned,
             "favorite":note.favorite,
             "is_feature_note":note.is_feature_note,
-            "feature_date":note.feature_date
+            "feature_date":note.feature_date,
+            "priority":note.priority
         })
 
     return notes_list
@@ -61,7 +62,8 @@ async def get_note_by_id(note_id:int,dependency:user_dependency,db:Session=Depen
         "tags": [{"id": tag.id, "name": tag.name} for tag in db_note.tags],
         "created_at": db_note.created_at,
         "updated_at": db_note.updated_at,
-        "is_active": db_note.is_active
+        "is_active": db_note.is_active,
+        "priority":db_note.priority
     }
 
 @router.delete("/notes/delete/{note_id}")
@@ -108,6 +110,7 @@ async def create_note(dependency: user_dependency, note_request: NoteRequest, db
         embedding=embedding_byte,
         user_id=dependency.get("id"),
         is_feature_note=note_request.is_feature_note,
+        priority = note_request.priority,
         feature_date=feature_date
     )
 
@@ -128,7 +131,8 @@ async def create_note(dependency: user_dependency, note_request: NoteRequest, db
             "is_pinned":db_notes.is_pinned,
             "favorite":db_notes.favorite,
             "is_feature_note":db_notes.is_feature_note,
-            "feature_date":db_notes.feature_date
+            "feature_date":db_notes.feature_date,
+            "priority":db_notes.priority
         }
 
 
@@ -140,6 +144,7 @@ async def update_notes_with_id_by_creator(note_id:int,dependency:user_dependency
 
     db_note.title = update_body.title
     db_note.content = update_body.content
+    db_note.priority = update_body.priority
     if update_body.tags:
         existing_tags = db.query(Tag).filter(Tag.name.in_(update_body.tags)).all()
         existing_tag_names = {tag.name for tag in existing_tags}

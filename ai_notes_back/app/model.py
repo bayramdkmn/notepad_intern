@@ -29,6 +29,7 @@ class Notes(Base):
     is_pinned = Column(Boolean,default=False)
     is_feature_note = Column(Boolean,default=False)
     feature_date = Column(DateTime(timezone=True),nullable=True)
+    priority = Column(String,nullable=True)
     tags = relationship("Tag", secondary="note_tags", back_populates="notes")
 
 

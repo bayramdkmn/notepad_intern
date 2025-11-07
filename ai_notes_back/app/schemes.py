@@ -20,6 +20,7 @@ class UserRequest(BaseModel):
 class UpdateNotesRequest(BaseModel):
     title : str
     content :str
+    priority : str
     tags: Optional[List[str]] = []
 
 class LoginRequest(BaseModel):
@@ -29,6 +30,7 @@ class LoginRequest(BaseModel):
 class NoteRequest(BaseModel):
     title: str
     content: str
+    priority : str = "Low"
     is_feature_note: Optional[bool] = False
     feature_date: Optional[datetime] = None
     tags: Optional[List[str]] = []

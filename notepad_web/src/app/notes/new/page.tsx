@@ -8,6 +8,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import EventIcon from "@mui/icons-material/Event";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 interface Tag {
   id: number;
@@ -25,6 +27,9 @@ export default function NewNotePage() {
   const [showTagInput, setShowTagInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFutureNote, setIsFutureNote] = useState(false);
+  const [futureDate, setFutureDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     fetchTags();
@@ -78,6 +83,10 @@ export default function NewNotePage() {
         title: title.trim(),
         content: content.trim(),
         tags: selectedTags,
+        is_feature_note: isFutureNote,
+        feature_date: futureDate
+          ? new Date(futureDate).toISOString()
+          : undefined,
       });
       router.push("/");
     } catch (error) {
@@ -86,6 +95,17 @@ export default function NewNotePage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const formatSelectedDate = () => {
+    if (!futureDate) return "";
+    const date = new Date(futureDate);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
 
   return (
@@ -233,6 +253,97 @@ export default function NewNotePage() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Future Note Section */}
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-zinc-700">
+            <div className="space-y-4">
+              {/* Checkbox */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <EventIcon
+                      className="text-purple-600 dark:text-purple-400"
+                      fontSize="small"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Gelecek Tarihli Not
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Bu notu belirli bir tarihte hatırlatmak için işaretleyin
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isFutureNote}
+                    onChange={(e) => {
+                      setIsFutureNote(e.target.checked);
+                      if (e.target.checked) {
+                        setShowDatePicker(true);
+                      } else {
+                        setShowDatePicker(false);
+                        setFutureDate("");
+                      }
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                </label>
+              </div>
+
+              {/* Date Picker - Animated Slide Down */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  showDatePicker ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                {showDatePicker && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <CalendarMonthIcon fontSize="small" />
+                      <span>Hatırlatma tarih ve saati seçin</span>
+                    </div>
+
+                    {/* Date Time Input */}
+                    <div className="relative">
+                      <input
+                        type="datetime-local"
+                        value={futureDate}
+                        onChange={(e) => setFutureDate(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-700 border-2 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-white rounded-xl text-sm font-medium focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:focus:ring-purple-600 outline-none transition-all"
+                      />
+                    </div>
+
+                    {/* Selected Date Display */}
+                    {futureDate && (
+                      <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                            Hatırlatma: {formatSelectedDate()}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setFutureDate("");
+                            setIsFutureNote(false);
+                            setShowDatePicker(false);
+                          }}
+                          className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
+                        >
+                          <CloseIcon fontSize="small" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Content Editor */}

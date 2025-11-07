@@ -113,7 +113,21 @@ async def create_note(dependency: user_dependency, note_request: NoteRequest, db
     db.commit()
     db.refresh(db_notes)
 
-    return db_notes
+    # Return without embedding to avoid serialization errors
+    return {
+        "id": db_notes.id,
+        "title": db_notes.title,
+        "content": db_notes.content,
+        "tags": [{"id": tag.id, "name": tag.name} for tag in db_notes.tags],
+        "created_at": db_notes.created_at,
+        "updated_at": db_notes.updated_at,
+        "is_active": db_notes.is_active,
+        "is_archived": db_notes.is_archived,
+        "is_pinned": db_notes.is_pinned,
+        "favorite": db_notes.favorite,
+        "is_feature_note": db_notes.is_feature_note,
+        "feature_date": db_notes.feature_date
+    }
 
 
 @router.patch("/notes/update-note/{note_id}")

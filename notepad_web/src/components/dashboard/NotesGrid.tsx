@@ -13,11 +13,15 @@ import { useNotes, Note, Tag } from "@/providers/NotesProvider";
 
 interface NotesGridProps {
   searchQuery?: string;
+  initialNotes?: Note[];
 }
 
-export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
+export default function NotesGrid({
+  searchQuery = "",
+  initialNotes = [],
+}: NotesGridProps) {
   const router = useRouter();
-  const { notes, isLoading, error } = useNotes();
+  const { notes: contextNotes, isLoading, error } = useNotes();
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     tags: [],
@@ -27,6 +31,10 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
     showPinnedOnly: false,
   });
   const [sortOption, setSortOption] = useState<SortOption>("date-desc");
+
+  // Use initialNotes if available and context is loading, otherwise use context notes
+  const notes =
+    !isLoading && contextNotes.length > 0 ? contextNotes : initialNotes;
 
   const availableTags = useMemo(() => {
     const tagsSet = new Set<string>();
@@ -184,8 +192,8 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
+      <div className="space-y-4 stagger-children">
+        {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
             className="h-32 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
@@ -205,18 +213,20 @@ export default function NotesGrid({ searchQuery = "" }: NotesGridProps) {
 
   return (
     <div>
-      <FiltersBar
-        onFilterChange={setFilters}
-        onSortChange={setSortOption}
-        availableTags={availableTags}
-        currentSort={sortOption}
-      />
+      <div className="animate-slide-in-top">
+        <FiltersBar
+          onFilterChange={setFilters}
+          onSortChange={setSortOption}
+          availableTags={availableTags}
+          currentSort={sortOption}
+        />
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 mt-4 stagger-children">
         {/* Yeni Not Oluştur Kartı */}
         <div
           onClick={() => router.push("/notes/new")}
-          className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border-2 border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-xl hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30 transition-all duration-300 cursor-pointer group min-h-[180px] flex flex-col items-center justify-center hover:-translate-y-1"
+          className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border-2 border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md transition-all duration-300 cursor-pointer group min-h-[180px] flex flex-col items-center justify-center hover:-translate-y-1"
         >
           <div className="w-12 h-12 mb-3 rounded-full bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
             <NoteAddIcon

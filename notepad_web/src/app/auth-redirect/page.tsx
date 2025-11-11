@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function AuthRedirectPage() {
+function AuthRedirectContent() {
   const searchParams = useSearchParams();
   const [countdown, setCountdown] = useState(2);
   const redirectTo = searchParams.get("to") || "/login";
@@ -86,5 +86,19 @@ export default function AuthRedirectPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function AuthRedirectPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white dark:bg-[#101622] flex items-center justify-center">
+          <div className="text-gray-600 dark:text-gray-400">Yükleniyor...</div>
+        </div>
+      }
+    >
+      <AuthRedirectContent />
+    </Suspense>
   );
 }

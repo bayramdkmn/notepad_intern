@@ -33,7 +33,7 @@ export default function SearchBar({ onSearch, onClear }: SearchBarProps) {
     <header className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
       <div className="w-full flex-1">
         <label className="flex flex-col w-full">
-          <div className="flex w-full flex-1 items-stretch rounded-lg h-10 sm:h-12 bg-white border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 dark:bg-[#242424] dark:border-zinc-700 dark:focus-within:border-blue-500 transition-all">
+          <div className="flex w-full flex-1 items-stretch rounded-lg h-10 sm:h-12 bg-white border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 dark:bg-[#242424] dark:border-zinc-700 dark:focus-within:border-blue-500 transition-all hover:scale-[1.02] focus-within:scale-[1.02]">
             <div className="pl-3 sm:pl-4 flex items-center text-gray-400">
               <SearchIcon fontSize="small" />
             </div>

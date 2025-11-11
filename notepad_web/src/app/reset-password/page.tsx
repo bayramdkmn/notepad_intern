@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const params = useSearchParams();
   const token = params.get("token") || "";
   const router = useRouter();
@@ -75,5 +75,19 @@ export default function ResetPasswordPage() {
         </form>
       )}
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-white dark:bg-[#101622] w-full h-screen flex items-center justify-center">
+          <div className="text-gray-600 dark:text-gray-400">Yükleniyor...</div>
+        </div>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

@@ -52,12 +52,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#101622] w-full h-screen flex items-center flex-col gap-10 justify-center relative">
-      <div className="absolute top-6 right-6 animate-fade-in">
+    <div className="bg-white dark:bg-[#101622] w-full h-screen flex items-center flex-col gap-10 justify-center relative animate-fade-in">
+      <div className="absolute top-6 right-6 animate-scale-in">
         <ThemeToggle />
       </div>
 
-      <div className="flex flex-col items-center gap-2 text-center text-white animate-fade-in">
+      <div className="flex flex-col items-center gap-2 text-center text-white animate-slide-in-top">
         <svg
           className="h-10 w-10 text-blue-600"
           fill="none"
@@ -79,7 +79,7 @@ const LoginPage = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="flex w-1/2 gap-4 flex-col rounded-xl bg-surface-dark/50 p-8 shadow-lg ring-1 ring-border-dark/50 animate-fade-in"
+        className="flex w-1/2 gap-4 flex-col rounded-xl bg-surface-dark/50 p-8 shadow-lg ring-1 ring-border-dark/50 animate-scale-in stagger-children"
       >
         <span className="text-black dark:text-white text-center font-extrabold text-2xl">
           Hesabınıza Giriş Yapın

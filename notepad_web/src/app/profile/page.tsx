@@ -71,7 +71,7 @@ export default function ProfilePage() {
       alert("Lütfen soyadınızı girin!");
       return;
     }
-    
+
     // Telefon validasyonu
     if (
       formData.phone &&
@@ -156,9 +156,9 @@ export default function ProfilePage() {
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar />
-      <main className="flex-1 p-6 lg:p-8 ">
+      <main className="flex-1 p-6 lg:p-8 animate-fade-in">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-8">
+          <div className="mb-8 animate-slide-in-top">
             <h1 className="text-gray-900 text-3xl font-bold tracking-tight dark:text-white">
               Profil Ayarları
             </h1>
@@ -167,8 +167,8 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-[#2A2A2A] p-8">
-            <div className="flex items-center gap-6 pb-8 border-b border-gray-200 dark:border-[#2A2A2A]">
+          <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-[#2A2A2A] p-8 animate-scale-in">
+            <div className="flex items-center gap-6 pb-8 border-b border-gray-200 dark:border-[#2A2A2A] animate-slide-in-left">
               {!user || isLoading ? (
                 <>
                   <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse" />
@@ -215,7 +215,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-8 space-y-6">
+              <div className="mt-8 space-y-6 stagger-children">
                 {/* Ad */}
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -353,7 +353,7 @@ export default function ProfilePage() {
                       </button>
                       <button
                         onClick={() => setIsPasswordChangeOpen(true)}
-                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                        className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                       >
                         <VpnKeyIcon fontSize="small" />
                         Şifre Değiştir

@@ -50,23 +50,54 @@ export default function NoteCard({
       {/* Header - Başlık ve İkonlar */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <h3
-          className={`flex-1 text-lg font-bold transition-colors line-clamp-2 ${
+          className={`flex-1 text-lg font-bold transition-colors line-clamp-2 flex items-baseline gap-2 ${
             note.is_pinned
               ? "text-blue-900 dark:text-blue-100 group-hover:text-blue-700 dark:group-hover:text-blue-300"
               : "text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400"
           }`}
         >
-          {note.title}
+          <Tooltip title={"Not Başlığı"} placement="top">
+            <span className="line-clamp-2">{note.title}</span>
+          </Tooltip>
+          {/* Priority Badge - Modern */}
+          {note.priority && (
+            <Tooltip
+              title={
+                note.priority === "High"
+                  ? "Yüksek Öncelik"
+                  : note.priority === "Medium"
+                  ? "Orta Öncelik"
+                  : "Düşük Öncelik"
+              }
+              placement="top"
+            >
+              <span
+                className={`flex items-center flex-shrink-0 px-3 py-0.3 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                  note.priority === "High"
+                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                    : note.priority === "Medium"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                    : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                }`}
+              >
+                {note.priority === "High"
+                  ? "!!!"
+                  : note.priority === "Medium"
+                  ? "!!"
+                  : "!"}
+              </span>
+            </Tooltip>
+          )}
         </h3>
 
-        {/* Sağ üst - Pinned Icon */}
+        {/* Pinned Icon */}
         <Tooltip
           title={note.is_pinned ? "İşareti Kaldır" : "İşaretle"}
           placement="top"
         >
           <svg
             onClick={handlePinClick}
-            className="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
+            className="w-6 h-6 text-blue-600 dark:text-blue-400 cursor-pointer hover:scale-110 transition-transform flex-shrink-0"
             fill={note.is_pinned ? "currentColor" : "none"}
             stroke="currentColor"
             strokeWidth={note.is_pinned ? 0 : 2}
@@ -81,12 +112,14 @@ export default function NoteCard({
       {note.tags && note.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-auto">
           {note.tags.slice(0, 3).map((tag: Tag) => (
-            <span
-              key={tag.id}
-              className="inline-block px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded-md dark:bg-blue-500/10 dark:text-blue-300"
-            >
-              {tag.name}
-            </span>
+            <Tooltip key={tag.id} title={"Etiket"} placement="top">
+              <span
+                key={tag.id}
+                className="inline-block px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded-md dark:bg-blue-500/10 dark:text-blue-300"
+              >
+                {tag.name}
+              </span>
+            </Tooltip>
           ))}
           {note.tags.length > 3 && (
             <span className="inline-block px-2.5 py-1 text-xs font-semibold text-gray-500 bg-gray-100 rounded-md dark:bg-gray-700 dark:text-gray-400">

@@ -40,55 +40,70 @@ export default function NoteModal({
   formatDate,
 }: NoteModalProps) {
   const { updateNote } = useNotes();
+  const [currentNote, setCurrentNote] = useState<Note>(note);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(note.title);
   const [editedContent, setEditedContent] = useState(note.content);
-  const [editedPriority, setEditedPriority] = useState<"Low" | "Medium" | "High">(note.priority || "Medium");
+  const [editedPriority, setEditedPriority] = useState<
+    "Low" | "Medium" | "High"
+  >(note.priority || "Medium");
   const [editedTags, setEditedTags] = useState<string>(
-    note.tags?.map(t => t.name).join(", ") || ""
+    note.tags?.map((t) => t.name).join(", ") || ""
   );
   const [isSaving, setIsSaving] = useState(false);
+
+  // Note prop değiştiğinde currentNote'u güncelle
+  useEffect(() => {
+    setCurrentNote(note);
+  }, [note]);
+
+  // currentNote değiştiğinde edit state'lerini güncelle
+  useEffect(() => {
+    setEditedTitle(currentNote.title);
+    setEditedContent(currentNote.content);
+    setEditedPriority(currentNote.priority || "Medium");
+    setEditedTags(currentNote.tags?.map((t) => t.name).join(", ") || "");
+  }, [currentNote]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       const tagsArray = editedTags
         .split(",")
-        .map(tag => tag.trim())
-        .filter(tag => tag.length > 0);
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
 
-      await apiClient.updateNote(note.id, {
-        title: editedTitle,
-        content: editedContent,
-        priority: editedPriority,
-        tags: tagsArray,
-      });
+      // Backend'e güncelleme isteği gönder
+      const updatedNoteFromBackend = await apiClient.updateNote(
+        currentNote.id,
+        {
+          title: editedTitle,
+          content: editedContent,
+          priority: editedPriority,
+          tags: tagsArray,
+        }
+      );
 
-      // Context'i güncelle
-      updateNote({
-        ...note,
-        title: editedTitle,
-        content: editedContent,
-        priority: editedPriority,
-        tags: tagsArray.map((name, index) => ({ id: index, name })),
-        is_pinned: note.is_pinned || false,
-        is_feature_note: note.is_feature_note || false,
-        feature_date: note.feature_date || null,
-      });
+      // Backend'den dönen güncel notu context'e kaydet
+      updateNote(updatedNoteFromBackend);
+
+      // Local state'i de güncelle
+      setCurrentNote(updatedNoteFromBackend);
 
       setIsEditing(false);
     } catch (error) {
       console.error("Not güncelleme hatası:", error);
+      alert("Not güncellenemedi. Lütfen tekrar deneyin.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
-    setEditedTitle(note.title);
-    setEditedContent(note.content);
-    setEditedPriority(note.priority || "Medium");
-    setEditedTags(note.tags?.map(t => t.name).join(", ") || "");
+    setEditedTitle(currentNote.title);
+    setEditedContent(currentNote.content);
+    setEditedPriority(currentNote.priority || "Medium");
+    setEditedTags(currentNote.tags?.map((t) => t.name).join(", ") || "");
     setIsEditing(false);
   };
 
@@ -109,11 +124,11 @@ export default function NoteModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
+        className="bg-white dark:bg-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -129,26 +144,28 @@ export default function NoteModal({
               />
             ) : (
               <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
-                {note.title}
+                {currentNote.title}
               </h2>
             )}
-            
+
             {!isEditing && (
               <>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
                     <AccessTimeIcon fontSize="small" className="w-4 h-4" />
-                    <span>Güncellendi: {formatDate(note.updated_at)}</span>
+                    <span>
+                      Güncellendi: {formatDate(currentNote.updated_at)}
+                    </span>
                   </div>
-                  {note.created_at !== note.updated_at && (
+                  {currentNote.created_at !== currentNote.updated_at && (
                     <span className="text-gray-400 text-xs">
-                      Oluşturuldu: {formatDate(note.created_at)}
+                      Oluşturuldu: {formatDate(currentNote.created_at)}
                     </span>
                   )}
                 </div>
 
                 {/* Future Note Badge */}
-                {note.is_feature_note && note.feature_date && (
+                {currentNote.is_feature_note && currentNote.feature_date && (
                   <div className="mt-3 space-y-2">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 border-2 border-blue-400 dark:border-blue-600 rounded-lg shadow-md">
                       <svg
@@ -167,7 +184,9 @@ export default function NoteModal({
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <span className="text-xs font-bold text-blue-800 dark:text-blue-200">
                           Hatırlatma:{" "}
-                          {new Date(note.feature_date).toLocaleDateString("tr-TR", {
+                          {new Date(
+                            currentNote.feature_date
+                          ).toLocaleDateString("tr-TR", {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
@@ -176,7 +195,7 @@ export default function NoteModal({
                           })}
                         </span>
                         <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-200 dark:bg-blue-800/50 px-2 py-0.5 rounded">
-                          Kalan: {formatDate(note.feature_date, true)}
+                          Kalan: {formatDate(currentNote.feature_date, true)}
                         </span>
                       </div>
                     </div>
@@ -185,7 +204,7 @@ export default function NoteModal({
               </>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             {!isEditing && (
               <button
@@ -229,7 +248,11 @@ export default function NoteModal({
                 </label>
                 <select
                   value={editedPriority}
-                  onChange={(e) => setEditedPriority(e.target.value as "Low" | "Medium" | "High")}
+                  onChange={(e) =>
+                    setEditedPriority(
+                      e.target.value as "Low" | "Medium" | "High"
+                    )
+                  }
                   className="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="Low">Düşük</option>
@@ -241,7 +264,10 @@ export default function NoteModal({
               {/* Tags Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Etiketler <span className="text-xs text-gray-500">(virgülle ayırın)</span>
+                  Etiketler{" "}
+                  <span className="text-xs text-gray-500">
+                    (virgülle ayırın)
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -255,7 +281,7 @@ export default function NoteModal({
           ) : (
             <div className="prose prose-gray dark:prose-invert max-w-none">
               <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                {note.content}
+                {currentNote.content}
               </p>
             </div>
           )}
@@ -280,13 +306,25 @@ export default function NoteModal({
                 {isSaving ? (
                   <>
                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Kaydediliyor...
                   </>
                 ) : (
-                  'Kaydet'
+                  "Kaydet"
                 )}
               </button>
             </div>
@@ -294,14 +332,14 @@ export default function NoteModal({
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               {/* Tags */}
               <div className="flex items-center gap-2 flex-wrap">
-                {note.tags && note.tags.length > 0 && (
+                {currentNote.tags && currentNote.tags.length > 0 && (
                   <>
                     <LocalOfferIcon
                       className="text-gray-500 flex-shrink-0"
                       fontSize="small"
                     />
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {note.tags.map((tag) => (
+                      {currentNote.tags.map((tag) => (
                         <span
                           key={tag.id}
                           className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full dark:bg-blue-500/20 dark:text-blue-300"
@@ -315,16 +353,22 @@ export default function NoteModal({
               </div>
 
               {/* Priority Badge */}
-              {note.priority && (
+              {currentNote.priority && (
                 <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                    note.priority === "High" 
-                      ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                      : note.priority === "Medium"
-                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                      : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                  }`}>
-                    {note.priority === "High" ? "Yüksek Öncelik" : note.priority === "Medium" ? "Orta Öncelik" : "Düşük Öncelik"}
+                  <span
+                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                      currentNote.priority === "High"
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                        : currentNote.priority === "Medium"
+                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                    }`}
+                  >
+                    {currentNote.priority === "High"
+                      ? "Yüksek Öncelik"
+                      : currentNote.priority === "Medium"
+                      ? "Orta Öncelik"
+                      : "Düşük Öncelik"}
                   </span>
                 </div>
               )}

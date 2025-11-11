@@ -126,13 +126,13 @@ const RegisterPage = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-[#101622] w-full select-none h-screen overflow-auto py-10 flex items-center flex-col gap-10 justify-center relative">
+    <div className="bg-white dark:bg-[#101622] w-full select-none h-screen overflow-auto py-10 flex items-center flex-col gap-10 justify-center relative animate-fade-in">
       {/* Theme Toggle - Top Right */}
-      <div className="absolute top-6 right-6 animate-fade-in">
+      <div className="absolute top-6 right-6 animate-scale-in">
         <ThemeToggle />
       </div>
 
-      <div className="flex flex-col items-center gap-2 text-center text-white animate-fade-in">
+      <div className="flex flex-col items-center gap-2 text-center text-white animate-slide-in-top">
         <svg
           className="h-10 w-10 text-blue-600"
           fill="none"
@@ -154,7 +154,7 @@ const RegisterPage = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-2xl gap-6 flex-col rounded-xl bg-surface-dark/50 p-8 shadow-lg ring-1 ring-border-dark/50 animate-fade-in"
+        className="flex w-full max-w-2xl gap-6 flex-col rounded-xl bg-surface-dark/50 p-8 shadow-lg ring-1 ring-border-dark/50 animate-scale-in"
       >
         <span className="text-black dark:text-white text-center font-extrabold text-2xl">
           Hesap Oluştur
@@ -194,7 +194,7 @@ const RegisterPage = () => {
 
         {/* Step 1: Personal Information*/}
         {step === 1 && (
-          <div className="gap-5 flex flex-col">
+          <div className="gap-5 flex flex-col stagger-children">
             <div>
               <label className="text-black dark:text-white font-medium">
                 Ad

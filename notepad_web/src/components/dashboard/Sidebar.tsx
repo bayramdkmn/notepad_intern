@@ -87,11 +87,11 @@ export default function Sidebar() {
       >
         <button
           onClick={() => setIsMobileMenuOpen(false)}
-          className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
+          className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-transform hover:scale-110"
         >
           <CloseIcon />
         </button>
-        <div className="flex flex-col gap-8 mt-8">
+        <div className="flex flex-col gap-8 mt-8 stagger-children">
           <div className="flex gap-3 items-center px-2">
             <div className="rounded-lg size-10 flex items-center justify-center bg-primary/10">
               <PsychologyIcon
@@ -177,8 +177,8 @@ export default function Sidebar() {
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-full md:w-1/4 lg:w-1/5 xl:w-1/6 flex-col sticky top-0 self-start min-h-screen bg-white p-2 text-gray-800 border-r border-gray-300 dark:bg-[#1A1A1A] dark:text-[#E0E0E0] dark:border-[#424242]">
-        <div className="flex flex-col gap-8">
+      <aside className="hidden md:flex w-full md:w-1/4 lg:w-1/5 xl:w-1/6 flex-col sticky top-0 self-start min-h-screen bg-white p-2 text-gray-800 border-r border-gray-300 dark:bg-[#1A1A1A] dark:text-[#E0E0E0] dark:border-[#424242] animate-slide-in-left">
+        <div className="flex flex-col gap-8 stagger-children">
           <div className="flex gap-3 items-center px-2">
             <div className="rounded-lg size-10 flex items-center justify-center bg-primary/10">
               <PsychologyIcon

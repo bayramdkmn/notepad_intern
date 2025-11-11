@@ -347,7 +347,56 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  async addTagToNote(noteId: number, tagId: number): Promise<any> {
+    return this.request<any>(`/notes/notes/${noteId}/tags/${tagId}`, {
+      method: "POST",
+    });
+  }
+
+  async addTagToNoteByName(noteId: number, tagName: string): Promise<any> {
+    // Önce etiketi oluştur veya bul
+    const tags = await this.getTags();
+    let tag = tags.find((t: any) => t.name === tagName);
+    
+    if (!tag) {
+      // Etiket yoksa oluştur
+      tag = await this.createTag(tagName);
+    }
+    
+    // Etiketi nota ekle
+    return this.addTagToNote(noteId, tag.id);
+  }
 }
 
 export const api = new ApiClient(API_URL);
 export const apiClient = api; // Alias for compatibility
+
+// Server-side API client for SSR
+export async function getNotesServerSide(token: string): Promise<any[]> {
+  try {
+    const url = `${API_URL}/notes/notes/get-all-notes/`;
+    const response = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: 'no-store', // Disable caching for fresh data
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Unauthorized");
+      }
+      throw new Error("Failed to fetch notes");
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    if (error instanceof Error && error.message.toLowerCase().includes("unauthorized")) {
+      throw error;
+    }
+    return [];
+  }
+}

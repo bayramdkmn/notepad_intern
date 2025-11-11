@@ -105,14 +105,14 @@ export default function FiltersBar({
         <div className="relative flex-1 sm:flex-initial min-w-0">
           <button
             onClick={() => setShowSortMenu(!showSortMenu)}
-            className="flex items-center justify-between w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center justify-between w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 hover:scale-105 active:scale-95"
           >
             <span>Sıralama</span>
             <SortIcon className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </button>
 
           {showSortMenu && (
-            <div className="absolute z-10 mt-2 w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden">
+            <div className="absolute z-10 mt-2 w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden animate-scale-in">
               <button
                 onClick={() => {
                   onSortChange("date-desc");

@@ -74,6 +74,7 @@ class VerifyOTPSchema(BaseModel):
     otp: str
 
 class ResetPasswordSchema(BaseModel):
+    otp : str
     new_password: str
     confirm_new_password: str
 

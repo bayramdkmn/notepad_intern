@@ -167,52 +167,6 @@ async def refresh_token_endpoint(refresh_token: str = Body(..., embed=True),  db
 
     return {"access_token": new_access_token, "token_type": "bearer"}
 
-@router.put("/users/reset-password/")
-async def reset_password(payload: ResetPasswordSchema, request: Request, db: Session = Depends(get_db)):
-    # 1️⃣ Reset tokenı cookie veya query paramdan al
-    reset_token = request.cookies.get("reset_token") or request.query_params.get("reset_token")
-    if not reset_token:
-        raise HTTPException(status_code=400, detail="Reset token missing")
-
-    # 2️⃣ Reset token doğrulama
-    token_data = reset_token_store.get(reset_token)
-    if not token_data:
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    if datetime.now(timezone.utc) > token_data["expires_at"]:
-        del reset_token_store[reset_token]
-        raise HTTPException(status_code=400, detail="Reset token expired")
-
-    # 3️⃣ Kullanıcıyı al
-    email = token_data["email"]
-    user = db.query(Users).filter_by(email=email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # 4️⃣ Şifre kontrolleri
-    if payload.new_password != payload.confirm_new_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-    if len(payload.new_password) < 8:
-        raise HTTPException(status_code=400, detail="Password too short (min 8 chars)")
-    if bcrypt_context.verify(payload.new_password, user.password_hash):
-        raise HTTPException(status_code=400, detail="New password must not equal old password")
-
-    # 5️⃣ Şifreyi güncelle
-    user.password_hash = bcrypt_context.hash(payload.new_password)
-    db.add(user)
-
-    # 6️⃣ Kullanıcının refresh tokenlarını iptal et
-    refresh_tokens = db.query(Token).filter_by(user_id=user.id, token_type="refresh_token").all()
-    for rt in refresh_tokens:
-        black = TokenBlacklist(jti=rt.jti, token=rt.token)
-        db.add(black)
-        db.delete(rt)
-
-    db.commit()
-
-    # 7️⃣ Reset token kullanıldı olarak işaretle
-    del reset_token_store[reset_token]
-
-    return {"detail": "Password reset successful"}
 
 @router.patch("/users/update-user/")
 async def update_user_for_profile_page(profile_request:UpdateUserRequest,dependency:user_dependency,db:Session=Depends(get_db)):
@@ -274,15 +228,16 @@ async def request_password_reset(payload: RequestPasswordResetSchema, response: 
 
     otp_code = f"{random.randint(0, 999999):06d}"
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+
     otp_store[user.email] = {"otp": otp_code, "expires_at": expires_at}
 
+    # OTP’yi cookie’ye ekle
     response.set_cookie(
         key="reset_otp",
         value=otp_code,
-        max_age=15*60,
+        max_age=15*60,  # 15 dakika
         httponly=True,
         secure=False,
-
     )
     response.set_cookie(
         key="reset_email",
@@ -292,13 +247,19 @@ async def request_password_reset(payload: RequestPasswordResetSchema, response: 
         secure=False,
     )
 
-    return {"detail": "OTP created (DEV MODE).", "otp": otp_code, "expires_at": expires_at.isoformat()}
+    return {"detail": "OTP created (DEV MODE)", "otp": otp_code}
 
 
-@router.post("/users/verify-otp/")
-async def verify_otp(payload: VerifyOTPSchema, response: Response, reset_email: str = Cookie(None)):
-    if not reset_email:
-        raise HTTPException(status_code=400, detail="Email not found in cookie")
+# --- 2️⃣ OTP doğrula + şifre değiştir ---
+@router.post("/users/reset-password/")
+async def reset_password(
+    payload: ResetPasswordSchema,
+    reset_otp: str = Cookie(None),
+    reset_email: str = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not reset_email or not reset_otp:
+        raise HTTPException(status_code=400, detail="OTP cookie missing")
 
     otp_data = otp_store.get(reset_email)
     if not otp_data:
@@ -311,76 +272,25 @@ async def verify_otp(payload: VerifyOTPSchema, response: Response, reset_email: 
     if payload.otp != otp_data["otp"]:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
-    # OTP doğru → reset token oluştur
-    reset_token = secrets.token_urlsafe(32)
-    reset_token_store[reset_token] = {
-        "email": reset_email,
-        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=5)
-    }
-
-    # Cookie’ye ekle
-    response.set_cookie(
-        key="reset_token",
-        value=reset_token,
-        max_age=5*60,  # 5 dakika
-        httponly=True,
-        secure=False
-    )
-
-    # OTP bir kere kullanıldı
-    del otp_store[reset_email]
-
-    return {"detail": "OTP verified", "reset_token": reset_token}
-
-
-@router.put("/users/reset-password/")
-async def reset_password(
-    payload: ResetPasswordSchema,
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    # 1️⃣ Reset token cookie veya query’den al
-    reset_token = request.cookies.get("reset_token") or request.query_params.get("reset_token")
-    if not reset_token:
-        raise HTTPException(status_code=400, detail="Reset token missing")
-
-    # 2️⃣ Token doğrula
-    token_data = reset_token_store.get(reset_token)
-    if not token_data:
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    if datetime.now(timezone.utc) > token_data["expires_at"]:
-        del reset_token_store[reset_token]
-        raise HTTPException(status_code=400, detail="Reset token expired")
-
-    # 3️⃣ Kullanıcıyı al
-    email = token_data["email"]
-    user = db.query(Users).filter_by(email=email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # 4️⃣ Şifre kontrolü
+    # Şifre kontrolleri
     if payload.new_password != payload.confirm_new_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
     if len(payload.new_password) < 8:
         raise HTTPException(status_code=400, detail="Password too short (min 8 chars)")
+
+    user = db.query(Users).filter_by(email=reset_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     if bcrypt_context.verify(payload.new_password, user.password_hash):
         raise HTTPException(status_code=400, detail="New password must not equal old password")
 
-    # 5️⃣ Şifreyi güncelle
+    # Şifreyi güncelle
     user.password_hash = bcrypt_context.hash(payload.new_password)
     db.add(user)
-
-    # 6️⃣ Kullanıcının refresh tokenlarını iptal et
-    refresh_tokens = db.query(Token).filter_by(user_id=user.id, token_type="refresh_token").all()
-    for rt in refresh_tokens:
-        black = TokenBlacklist(jti=rt.jti, token=rt.token)
-        db.add(black)
-        db.delete(rt)
-
     db.commit()
 
-    # 7️⃣ Reset token kullanıldı olarak işaretle
-    del reset_token_store[reset_token]
+    # OTP bir kere kullanıldı
+    del otp_store[reset_email]
 
     return {"detail": "Password reset successful"}
 

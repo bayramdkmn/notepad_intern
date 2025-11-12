@@ -1,11 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { ThemeContextType } from "@/types";
 
 type Theme = "light" | "dark";
 
-type ThemeContextValue = {
-  theme: Theme;
+type ThemeContextValue = ThemeContextType & {
   setTheme: (t: Theme) => void;
   toggle: () => void;
 };
@@ -25,7 +25,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // İlk yüklemede localStorage veya sistem tercihinden başlat
   useEffect(() => {
     try {
       const stored = localStorage.getItem("theme");
@@ -49,6 +48,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       theme,
       setTheme: apply,
       toggle: () => apply(theme === "dark" ? "light" : "dark"),
+      toggleTheme: () => apply(theme === "dark" ? "light" : "dark"),
     }),
     [theme]
   );

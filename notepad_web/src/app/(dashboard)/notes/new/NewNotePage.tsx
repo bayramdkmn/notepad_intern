@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useNotes } from "@/providers/NotesProvider";
+import type { Tag } from "@/types";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
@@ -15,12 +16,6 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/tr";
-
-interface Tag {
-  id: number;
-  name: string;
-  color?: string;
-}
 
 interface NewNotePageProps {
   initialTags: Tag[];
@@ -39,7 +34,6 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Medium");
 
-  // İleri tarihli not state'leri
   const [isFutureNote, setIsFutureNote] = useState(false);
   const [futureDate, setFutureDate] = useState<Dayjs | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -60,7 +54,6 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
       const tags = await api.getTags();
       setAvailableTags(Array.isArray(tags) ? tags : []);
     } catch (error) {
-      // Tag yoksa sessizce boş array kullan
       setAvailableTags([]);
     } finally {
       setIsLoading(false);
@@ -91,7 +84,6 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
   };
 
   const handleSave = async () => {
-    // Validation kontrolü
     if (!title.trim() || !content.trim() || selectedTags.length === 0) {
       setShowErrors(true);
       return;
@@ -111,7 +103,6 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
             : new Date().toISOString(),
       });
 
-      // Cache'i temizle ve notları yenile
       await refreshNotes();
       router.push("/");
     } catch (error) {

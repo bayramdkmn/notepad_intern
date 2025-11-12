@@ -1,45 +1,23 @@
 //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  phone?: string;
-  password: string;
-}
-export interface AuthResponse {
-  access_token: string;
-  refresh_token?: string;
-  token_type: string;
-  user?: {
-    id: number;
-    email: string;
-    name: string;
-    surname?: string;
-    username?: string;
-    phone_number?: string;
-  };
-}
-export interface UserResponse {
-  id: number;
-  email: string;
-  name: string;
-  surname: string;
-  username: string;
-  phone_number?: string | null;
-  role: string;
-  created_at: string;
-  updated_at: string;
-}
-export interface ApiError {
-  detail: string;
-}
+import type {
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  UserResponse,
+  ApiError,
+  UpdateUserRequest,
+  ChangePasswordRequest,
+  Note,
+  CreateNoteRequest,
+  UpdateNoteRequest,
+  Tag,
+  CreateTagRequest,
+  UpdateTagRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+} from "@/types";
 
 class ApiClient {
   private baseUrl: string;

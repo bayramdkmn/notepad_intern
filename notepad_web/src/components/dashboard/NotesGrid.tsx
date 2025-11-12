@@ -10,7 +10,8 @@ import FiltersBar, {
 } from "@/components/dashboard/FiltersBar";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useNotes, Note, Tag } from "@/providers/NotesProvider";
+import { useNotes } from "@/providers/NotesProvider";
+import type { Note, Tag } from "@/types";
 import { api } from "@/lib/api";
 
 interface NotesGridProps {

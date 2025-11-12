@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
+import type { Tag, Note } from "@/types";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -13,18 +14,6 @@ import InfoIcon from "@mui/icons-material/Info";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import CircularProgress from "@mui/material/CircularProgress";
-
-interface Tag {
-  id: number;
-  name: string;
-  notes_count?: number;
-}
-
-interface Note {
-  id: number;
-  title: string;
-  tags: { id: number; name: string }[];
-}
 
 interface TagsPageProps {
   initialTags: Tag[];
@@ -299,7 +288,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         }
       }
 
-      // 4. Başarı özeti hazırla
       const addedTags = singleTagNotes
         .filter(
           (note) => !notesToDelete.has(note.id) && replacementTags.get(note.id)

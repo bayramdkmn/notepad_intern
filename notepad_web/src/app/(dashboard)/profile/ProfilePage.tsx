@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/AuthProvider";
+import type { UserResponse } from "@/types";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -11,7 +12,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 
 interface ProfilePageProps {
-  initialUser: any;
+  initialUser: UserResponse | null;
 }
 
 export default function ProfilePage({ initialUser }: ProfilePageProps) {
@@ -38,14 +39,13 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
     confirmPassword: "",
   });
 
-  // User yüklendiğinde form data'yı güncelle
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name?.split(" ")[0] || "",
         surname: user.name?.split(" ").slice(1).join(" ") || "",
         email: user.email || "",
-        phone: user.phone || "",
+        phone: user.phone_number || "",
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
@@ -56,7 +56,6 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Telefon numarası için sadece rakam kontrolü
     if (name === "phone") {
       const numbersOnly = value.replace(/[^0-9]/g, "");
       setFormData({
@@ -83,7 +82,6 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
       return;
     }
 
-    // Telefon validasyonu
     if (
       formData.phone &&
       formData.phone.length > 0 &&
@@ -114,7 +112,6 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
   };
 
   const handlePasswordChange = async () => {
-    // Şifre validasyonu
     if (!formData.currentPassword) {
       alert("Lütfen mevcut şifrenizi girin!");
       return;
@@ -131,7 +128,6 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
     try {
       setIsSaving(true);
       await changePassword(formData.currentPassword, formData.newPassword);
-      // Şifre değiştirildi, logout otomatik olacak
       alert(
         "Şifreniz başarıyla değiştirildi! Güvenlik için yeniden giriş yapmanız gerekiyor."
       );
@@ -151,7 +147,7 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
       name: user?.name?.split(" ")[0] || "",
       surname: user?.name?.split(" ").slice(1).join(" ") || "",
       email: user?.email || "",
-      phone: user?.phone || "",
+      phone: user?.phone_number || "",
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",

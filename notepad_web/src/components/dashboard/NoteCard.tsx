@@ -1,5 +1,5 @@
 import React from "react";
-import { Note, Tag } from "@/providers/NotesProvider";
+import type { Note, Tag } from "@/types";
 import Tooltip from "@mui/material/Tooltip";
 import { useNotes } from "@/providers/NotesProvider";
 
@@ -25,8 +25,10 @@ export default function NoteCard({
   const { togglePin } = useNotes();
 
   const handlePinClick = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Not kartına tıklamayı engelle
-    await togglePin(note.id);
+    e.stopPropagation();
+    if (togglePin) {
+      await togglePin(note.id);
+    }
   };
 
   const handleCardClick = () => {

@@ -23,7 +23,6 @@ export default function Sidebar() {
     setMounted(true);
   }, []);
 
-  // User display bilgilerini memo ile cache'le
   const userDisplay = useMemo(() => {
     if (!mounted || isLoading) {
       return {

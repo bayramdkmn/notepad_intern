@@ -85,7 +85,6 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Username kontrolü
     if (formData.username.trim() === "") {
       alert("Lütfen kullanıcı adınızı girin!");
       return;
@@ -99,7 +98,6 @@ const RegisterPage = () => {
       return;
     }
 
-    // Şifre kontrolü
     if (formData.password.length < 6) {
       alert("Şifre en az 6 karakter olmalıdır!");
       return;
@@ -111,7 +109,14 @@ const RegisterPage = () => {
 
     setIsSubmitting(true);
     try {
-      await register(formData);
+      await register({
+        firstName: formData.name,
+        lastName: formData.surname,
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+      });
     } catch (error) {
       alert("Kayıt başarısız. Lütfen tekrar deneyin.");
     } finally {

@@ -8,7 +8,6 @@ const publicRoutes = ['/login', '/register', '/forgotPassword', '/reset-password
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Token kontrolü
   const token = request.cookies.get('auth-token')?.value;
 
   const isHomePage = pathname === '/';

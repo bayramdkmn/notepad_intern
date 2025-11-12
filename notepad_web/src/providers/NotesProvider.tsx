@@ -9,37 +9,7 @@ import React, {
 } from "react";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "./AuthProvider";
-
-export interface Tag {
-  id: number;
-  name: string;
-}
-
-export interface Note {
-  id: number;
-  title: string;
-  content: string;
-  tags: Tag[];
-  created_at: string;
-  updated_at: string;
-  is_pinned: boolean;
-  is_feature_note: boolean;
-  feature_date: string | null;
-  priority?: "Low" | "Medium" | "High";
-}
-
-interface NotesContextType {
-  notes: Note[];
-  pinnedNotes: Note[];
-  futureNotes: Note[];
-  isLoading: boolean;
-  error: string | null;
-  refreshNotes: () => Promise<void>;
-  addNote: (note: Note) => void;
-  updateNote: (note: Note) => void;
-  deleteNote: (id: number) => void;
-  togglePin: (id: number) => Promise<void>;
-}
+import type { Note, Tag, NotesContextType } from "@/types";
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
 
@@ -53,9 +23,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // LocalStorage'dan notları yükle
   const loadFromStorage = useCallback(() => {
-    if (!isAuthenticated) return false; // Login olmadıysa storage'a bakma
+    if (!isAuthenticated) return false;
 
     try {
       const storedNotes = localStorage.getItem(NOTES_STORAGE_KEY);
@@ -65,17 +34,16 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         const age = Date.now() - parseInt(timestamp);
         if (age < CACHE_DURATION) {
           setNotes(JSON.parse(storedNotes));
-          return true; // Cache geçerli
+          return true;
         }
       }
-      return false; // Cache yok veya eski
+      return false;
     } catch (err) {
       console.error("LocalStorage okuma hatası:", err);
       return false;
     }
   }, [isAuthenticated]);
 
-  // LocalStorage'a notları kaydet
   const saveToStorage = useCallback((notesToSave: Note[]) => {
     try {
       localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notesToSave));

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import SearchBar from "@/components/dashboard/SearchBar";
 import NotesGrid from "@/components/dashboard/NotesGrid";
-import { Note } from "@/providers/NotesProvider";
+import type { Note } from "@/types";
 
 interface HomePageProps {
   initialNotes: Note[];

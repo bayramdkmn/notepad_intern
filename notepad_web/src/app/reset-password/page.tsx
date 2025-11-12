@@ -33,11 +33,9 @@ function ResetPasswordContent() {
 
       setSuccess(true);
 
-      // LocalStorage'dan reset bilgilerini temizle
       localStorage.removeItem("reset_otp");
       localStorage.removeItem("reset_email");
 
-      // 2 saniye sonra login sayfasına yönlendir
       setTimeout(() => {
         router.replace("/login");
       }, 2000);

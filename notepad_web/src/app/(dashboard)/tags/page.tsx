@@ -7,17 +7,14 @@ export default async function Tags() {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth-token")?.value;
 
-  // Token yoksa login'e yönlendir
   if (!token) {
     redirect("/login");
   }
 
-  // Etiketleri sunucu tarafında çek
   let initialTags = [];
   try {
     initialTags = await getTagsServerSide(token);
 
-    // Her etiket için not sayısını hesapla
     const notes = await getNotesServerSide(token);
     initialTags = initialTags.map((tag: any) => ({
       ...tag,

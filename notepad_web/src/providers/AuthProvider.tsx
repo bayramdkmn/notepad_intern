@@ -9,37 +9,14 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import type {
+  AuthContextType,
+  UserResponse,
+  RegisterRequest,
+  UpdateUserRequest,
+} from "@/types";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone?: string;
-  username?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-  updateUser: (data: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-  }) => Promise<void>;
-  resetPassword: (
-    otp: string,
-    new_password: string,
-    confirm_new_password: string
-  ) => Promise<void>;
-  changePassword: (
-    currentPassword: string,
-    newPassword: string
-  ) => Promise<void>;
-}
+type User = UserResponse;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -50,7 +27,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // İlk mount'ta localStorage'dan user bilgilerini HEMEN oku
     try {
       const savedUser = localStorage.getItem("user");
       if (savedUser) {
@@ -63,11 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("user");
     }
 
-    // Token kontrolü yap
     checkAuth();
   }, []);
 
-  // User state değiştiğinde localStorage'a kaydet
   useEffect(() => {
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
@@ -80,22 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = getCookie("auth-token");
       if (token) {
-        // Eğer localStorage'dan user zaten yüklendiyse, backend'e gitme
         if (isInitialized) {
           setIsLoading(false);
           return;
         }
 
-        // Backend'den kullanıcı bilgilerini al
         const userData = await api.getCurrentUser();
-        const userInfo = {
-          id: userData.id,
-          name: `${userData.name} ${userData.surname}`,
-          email: userData.email,
-          phone: userData.phone_number || undefined,
-          username: userData.username,
-        };
-        setUser(userInfo);
+        setUser(userData);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -110,22 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.login({ email, password });
 
-      // Token'ı cookie'ye kaydet
       setCookie("auth-token", response.access_token, 7); // 7 gün
 
-      // Token set edildikten sonra kullanıcı bilgilerini backend'den al
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       try {
         const userData = await api.getCurrentUser();
-        const userInfo = {
-          id: userData.id,
-          name: `${userData.name} ${userData.surname}`,
-          email: userData.email,
-          phone: userData.phone_number || undefined,
-          username: userData.username,
-        };
-        setUser(userInfo);
+        setUser(userData);
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
@@ -137,32 +93,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (userData: any) => {
+  const register = async (userData: RegisterRequest) => {
     try {
-      const response = await api.register({
-        firstName: userData.name,
-        lastName: userData.surname,
-        username: userData.username,
-        email: userData.email,
-        phone: userData.phone,
-        password: userData.password,
-      });
+      const response = await api.register(userData);
 
-      // Token'ı cookie'ye kaydet
       setCookie("auth-token", response.access_token, 7);
 
-      // Token set edildikten sonra kullanıcı bilgilerini state'e kaydet
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      if (response.user) {
-        const userInfo = {
-          id: response.user.id,
-          name: response.user.name,
-          email: response.user.email,
-          phone: response.user.phone_number,
-          username: response.user.username,
-        };
-        setUser(userInfo);
+      try {
+        const user = await api.getCurrentUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
       }
 
       router.push("/");
@@ -172,11 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUser = async (data: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-  }) => {
+  const updateUser = async (data: UpdateUserRequest) => {
     try {
       if (!user) {
         throw new Error("User not found");
@@ -186,17 +125,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: data.firstName,
         surname: data.lastName,
         username: user.username || "",
-        phone_number: data.phone,
+        phone_number: data.phone || "",
         email: user.email,
       });
-      const userInfo = {
-        id: updatedUser.id,
-        name: `${updatedUser.name} ${updatedUser.surname}`,
-        email: updatedUser.email,
-        phone: updatedUser.phone_number || undefined,
-        username: updatedUser.username,
-      };
-      setUser(userInfo);
+      setUser(updatedUser);
     } catch (error) {
       console.error("Update user failed:", error);
       throw error;

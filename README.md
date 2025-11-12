@@ -4,14 +4,14 @@ Notepad AI is a modern note-taking application that allows users to easily creat
 This project was developed as a sample internship project at Sampa Otomotiv.
 
 Features
--> Semantic Search — Search notes not just by keywords but by their meaning.
--> Future-Dated Notes — Create notes or reminders for specific future dates.
--> Tag Management — Assign multiple tags to notes to categorize them effectively.
--> Dark / Light Mode — Choose your preferred theme for better usability.
--> Filtering — Advanced filtering by tag, date, or content.
--> CRUD Operations — Add, delete, edit, and view notes easily.
-->� API-Based Architecture — The frontend and backend are fully separated and follow modern RESTful design principles.
--> Installation & Setup
+# Semantic Search — Search notes not just by keywords but by their meaning.
+# Future-Dated Notes — Create notes or reminders for specific future dates.
+# Tag Management — Assign multiple tags to notes to categorize them effectively.
+# Dark / Light Mode — Choose your preferred theme for better usability.
+# Filtering — Advanced filtering by tag, date, or content.
+# CRUD Operations — Add, delete, edit, and view notes easily.
+# API-Based Architecture — The frontend and backend are fully separated and follow modern RESTful design principles.
+# Installation & Setup
 
 
 🔹 1. Backend (FastAPI)

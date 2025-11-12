@@ -30,6 +30,10 @@ interface AuthContextType {
     lastName: string;
     phone: string;
   }) => Promise<void>;
+  resetPassword: (
+    new_password: string,
+    confirm_new_password: string
+  ) => Promise<void>;
   changePassword: (
     currentPassword: string,
     newPassword: string
@@ -198,6 +202,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resetPassword = async (
+    new_password: string,
+    confirm_new_password?: string
+  ) => {
+    try {
+      await api.resetPassword({
+        new_password: new_password,
+        confirm_new_password: confirm_new_password || new_password, // undefined ise new_password kullan
+      });
+    } catch (error) {
+      console.error("Reset password failed:", error);
+      throw error;
+    }
+  };
+
   const changePassword = async (
     currentPassword: string,
     newPassword: string
@@ -207,6 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         current_password: currentPassword,
         new_password: newPassword,
       });
+      logout();
     } catch (error) {
       console.error("Change password failed:", error);
       throw error;
@@ -229,6 +249,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         isAuthenticated: !!user,
         updateUser,
+        resetPassword,
         changePassword,
       }}
     >

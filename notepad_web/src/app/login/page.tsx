@@ -52,7 +52,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#101622] w-full h-screen flex items-center flex-col gap-10 justify-center relative animate-fade-in">
+    <div
+      className="bg-white dark:bg-[#101622] w-full h-screen flex items-center flex-col gap-10 justify-center relative animate-fade-in"
+      style={{ backgroundImage: "url()" }}
+    >
       <div className="absolute top-6 right-6 animate-scale-in">
         <ThemeToggle />
       </div>
@@ -79,7 +82,7 @@ const LoginPage = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="flex w-1/2 gap-4 flex-col rounded-xl bg-surface-dark/50 p-8 shadow-lg ring-1 ring-border-dark/50 animate-scale-in stagger-children"
+        className="flex w-4/5 sm:w-1/2 gap-4 flex-col rounded-xl bg-surface-dark/50 p-8 shadow-lg ring-1 ring-border-dark/50 animate-scale-in stagger-children"
       >
         <span className="text-black dark:text-white text-center font-extrabold text-2xl">
           Hesabınıza Giriş Yapın

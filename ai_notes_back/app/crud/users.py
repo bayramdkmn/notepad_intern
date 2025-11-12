@@ -272,12 +272,10 @@ async def request_password_reset(payload: RequestPasswordResetSchema, response: 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 6 haneli OTP
     otp_code = f"{random.randint(0, 999999):06d}"
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
     otp_store[user.email] = {"otp": otp_code, "expires_at": expires_at}
 
-    # Cookie’ye ekle
     response.set_cookie(
         key="reset_otp",
         value=otp_code,

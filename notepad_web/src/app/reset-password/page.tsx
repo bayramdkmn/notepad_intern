@@ -16,7 +16,7 @@ function ResetPasswordContent() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid || !token) return;
-    // Burada backend'e { token, newPassword: pass1 } gönderiniz
+
     router.replace("/login");
   };
 
@@ -45,10 +45,10 @@ function ResetPasswordContent() {
           onSubmit={handleSubmit}
           className="flex w-full max-w-md gap-4 flex-col rounded-xl p-6 shadow-lg ring-1 ring-neutral-700 animate-fade-in"
         >
-          <span className="text-center font-extrabold text-2xl">
+          <span className="text-center text-black dark:text-white font-extrabold text-2xl">
             Yeni Şifre Belirle
           </span>
-          <p className="text-sm text-neutral-300 text-center">
+          <p className="text-sm text-slate-600 dark:text-neutral-300 text-center">
             Güvenlik için bu bağlantı süreli ve tek kullanımlıktır.
           </p>
           <input
@@ -56,14 +56,14 @@ function ResetPasswordContent() {
             placeholder="Yeni şifre (min 8 karakter)"
             value={pass1}
             onChange={(e) => setPass1(e.target.value)}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-3 text-white placeholder:text-neutral-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full rounded-md border border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-3  text-black dark:text-white placeholder:text-neutral-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
           />
           <input
             type="password"
             placeholder="Yeni şifre tekrar"
             value={pass2}
             onChange={(e) => setPass2(e.target.value)}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-3 text-white placeholder:text-neutral-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full rounded-md border border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-3 text-black dark:text-white placeholder:text-neutral-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
           />
           <button
             type="submit"

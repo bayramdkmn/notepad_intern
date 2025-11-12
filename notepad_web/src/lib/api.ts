@@ -197,9 +197,26 @@ class ApiClient {
     current_password: string;
     new_password: string;
   }): Promise<{ message: string }> {
-    return this.request<{ message: string }>("/auth/users/reset-password/", {
-      method: "POST",
-      body: JSON.stringify(data),
+    return this.request<{ message: string }>("/auth/users/reset-password-in-profile", {
+      method: "PUT",
+      body: JSON.stringify({
+        old_password: data.current_password,
+        new_password: data.new_password,
+        confirm_password: data.new_password,
+      }),
+    });
+  }
+
+    async resetPassword(data: {
+      new_password: string;
+      confirm_new_password: string;
+  }): Promise<{ message: string }> {
+    return this.request<{ message: string }>("/auth/users/reset-password", {
+      method: "PUT",
+      body: JSON.stringify({
+        new_password: data.new_password,
+        confirm_new_password: data.confirm_new_password,
+      }),
     });
   }
 
@@ -389,6 +406,61 @@ export async function getNotesServerSide(token: string): Promise<any[]> {
         throw new Error("Unauthorized");
       }
       throw new Error("Failed to fetch notes");
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    if (error instanceof Error && error.message.toLowerCase().includes("unauthorized")) {
+      throw error;
+    }
+    return [];
+  }
+}
+
+export async function getUserServerSide(token: string): Promise<any | null> {
+  try {
+    const url = `${API_URL}/auth/users/me`;
+    const response = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Unauthorized");
+      }
+      throw new Error("Failed to fetch user");
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof Error && error.message.toLowerCase().includes("unauthorized")) {
+      throw error;
+    }
+    return null;
+  }
+}
+
+export async function getTagsServerSide(token: string): Promise<any[]> {
+  try {
+    const url = `${API_URL}/tags/tag/get-all-tags`;
+    const response = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Unauthorized");
+      }
+      throw new Error("Failed to fetch tags");
     }
 
     const data = await response.json();

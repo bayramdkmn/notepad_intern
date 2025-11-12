@@ -83,14 +83,12 @@ export default function ForgotPasswordPage() {
   const handleRequest = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidEmail(email)) return;
-    // Simülasyon: backend bir kod gönderdi
     const generated = Math.floor(100000 + Math.random() * 900000).toString();
     setServerCode(generated);
     const token = (
       Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
     ).slice(0, 48);
     setResetToken(token);
-    // Geliştirici görünürlüğü için
     try {
       console.log("Şifre sıfırlama kodu:", generated, "resetToken:", token);
     } catch {}
@@ -119,6 +117,8 @@ export default function ForgotPasswordPage() {
       if (resetToken) {
         router.push(`/reset-password?token=${encodeURIComponent(resetToken)}`);
       }
+    } else {
+      alert("Reset token eksik veya yanlış. Lütfen yeniden deneyin.");
     }
   };
 
@@ -201,20 +201,6 @@ export default function ForgotPasswordPage() {
               } transition-colors rounded-lg px-4`}
             >
               {seconds > 0 ? `Yeniden Gönder (${seconds}s)` : "Yeniden Gönder"}
-            </button>
-          </div>
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={() =>
-                resetToken &&
-                router.push(
-                  `/reset-password?token=${encodeURIComponent(resetToken)}`
-                )
-              }
-              className="text-xs text-neutral-300 hover:text-white underline underline-offset-4"
-            >
-              Demo: Şifre ekranına geç
             </button>
           </div>
         </form>

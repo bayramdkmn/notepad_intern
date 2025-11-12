@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional,List
 from enum import Enum

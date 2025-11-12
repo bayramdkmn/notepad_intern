@@ -30,10 +30,11 @@ uvicorn app.main:app --reload
 ```
 
 ### 🔹 1. Frontend (NextJS)
+```bash
 cd frontend
 npm install
 npm run dev
-
+```
 
 Screenshots
 <img width="1512" height="982" alt="Ekran Resmi 2025-11-12 16 30 18" src="https://github.com/user-attachments/assets/3c2a3248-ffde-4a55-adba-dda73f40a3bc" />

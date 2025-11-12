@@ -324,7 +324,7 @@ async def verify_otp(payload: VerifyOTPSchema, response: Response, reset_email: 
         value=reset_token,
         max_age=5*60,  # 5 dakika
         httponly=True,
-        secure=True
+        secure=False
     )
 
     # OTP bir kere kullanıldı

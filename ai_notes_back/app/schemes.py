@@ -18,7 +18,7 @@ class UserRequest(BaseModel):
     role : Optional[str] = "user"
     phone_number : Optional[str] = None
 
-class PriorityEnum(Enum):
+class PriorityEnum(str,Enum):
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
@@ -36,7 +36,7 @@ class LoginRequest(BaseModel):
 class NoteRequest(BaseModel):
     title: str
     content: str
-    priority: PriorityEnum = PriorityEnum.LOW
+    priority: PriorityEnum = PriorityEnum.LOW.value
     is_feature_note: Optional[bool] = False
     feature_date: Optional[datetime] = None
     tags: Optional[List[str]] = []

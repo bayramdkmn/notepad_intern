@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter,Depends,HTTPException,Query,status,Response
+from fastapi import APIRouter,Depends,HTTPException,Query,status,Response,Body
 from ..api.embedding import get_embedding
 
 from ..model import Notes,Tag
@@ -264,17 +264,31 @@ async def note_adding_into_favorite_by_user(favorite:bool,dependency:user_depend
     }
 
 @router.delete("/notes/delete-selected-notes")
-async def delete_selected_notes_by_notes_id_dependency(dependency: user_dependency,ids: IdsSchema,db: Session = Depends(get_db)):
-    if not ids:
-        raise HTTPException(status_code=404,detail="Ids not found here.")
-    for note_id in ids:
-        note = db.query(Notes).filter(Notes.id.__eq__(note_id), Notes.user_id.__eq__(dependency.get("id"))).delete(synchronize_session=False)
-        if note:
-            db.delete(note)
+async def delete_selected_notes_by_notes_id_dependency(
+    dependency: user_dependency,
+    ids: IdsSchema = Body(...),  # Body ile Swagger uyumu
+    db: Session = Depends(get_db)
+):
+    if not ids.ids:
+        raise HTTPException(status_code=404, detail="Ids not found here.")
+
+    # Kullanıcının notlarını al
+    notes_to_delete = db.query(Notes).filter(
+        Notes.id.in_(ids.ids),
+        Notes.user_id.__eq__(dependency.get("id"))
+    ).all()
+
+    if not notes_to_delete:
+        raise HTTPException(status_code=404, detail="No notes found for given IDs.")
+
+    # İlişkili tagleri temizle
+    for note in notes_to_delete:
+        note.tags.clear()  # note_tags tablosundaki ilişkileri temizler
+        db.delete(note)    # notu sil
+
     db.commit()
-    return {
-        "message":"Selected notes deleted by user."
-    }
+    return {"message": "Selected notes deleted by user."}
+
 
 
 @router.delete("/notes/soft-delete/{note_id}")

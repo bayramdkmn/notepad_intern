@@ -1,33 +1,38 @@
-📝 Smart Note Management System | Next.js & FastAPI
+# 📝 Smart Note Management System | Next.js & FastAPI
 
-Notepad AI is a modern note-taking application that allows users to easily create, edit, tag, and efficiently find their notes through semantic search.
-This project was developed as a sample internship project at Sampa Otomotiv.
+**Notepad AI** is a modern note-taking application that allows users to easily create, edit, tag, and efficiently find their notes through **semantic search**.  
+This project was developed as a sample internship project at **Sampa Otomotiv**.
 
-Features
-# Semantic Search — Search notes not just by keywords but by their meaning.
-# Future-Dated Notes — Create notes or reminders for specific future dates.
-# Tag Management — Assign multiple tags to notes to categorize them effectively.
-# Dark / Light Mode — Choose your preferred theme for better usability.
-# Filtering — Advanced filtering by tag, date, or content.
-# CRUD Operations — Add, delete, edit, and view notes easily.
-# API-Based Architecture — The frontend and backend are fully separated and follow modern RESTful design principles.
-# Installation & Setup
+---
 
+## 🚀 Features
 
-🔹 1. Backend (FastAPI)
+- 🧠 **Semantic Search** — Search notes not just by keywords but by their meaning.  
+- 🗓️ **Future-Dated Notes** — Create notes or reminders for specific future dates.  
+- 🏷️ **Tag Management** — Assign multiple tags to notes to categorize them effectively.  
+- 🌗 **Dark / Light Mode** — Choose your preferred theme for better usability.  
+- 🧩 **Filtering** — Advanced filtering by tag, date, or content.  
+- 📋 **CRUD Operations** — Add, delete, edit, and view notes easily.  
+- 🔐 **API-Based Architecture** — The frontend and backend are fully separated and follow modern RESTful design principles.  
+
+---
+
+## ⚙️ Installation & Setup
+
+### 🔹 1. Backend (FastAPI)
+
+```bash
 cd backend
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
-By default, the API runs at http://localhost:8000
+```
 
-
-🔹 2. Frontend (Next.js)
+### 🔹 1. Frontend (NextJS)
 cd frontend
 npm install
 npm run dev
-The application will be available at http://localhost:3000
 
 
 Screenshots

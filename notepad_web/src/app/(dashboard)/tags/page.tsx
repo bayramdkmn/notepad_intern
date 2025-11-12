@@ -16,14 +16,14 @@ export default async function Tags() {
   let initialTags = [];
   try {
     initialTags = await getTagsServerSide(token);
-    
+
     // Her etiket için not sayısını hesapla
     const notes = await getNotesServerSide(token);
     initialTags = initialTags.map((tag: any) => ({
       ...tag,
-      notes_count: notes.filter((note: any) => 
+      notes_count: notes.filter((note: any) =>
         note.tags?.some((t: any) => t.id === tag.id)
-      ).length
+      ).length,
     }));
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {

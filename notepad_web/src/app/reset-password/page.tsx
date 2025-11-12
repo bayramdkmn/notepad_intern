@@ -3,21 +3,51 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { api } from "@/lib/api";
 
 function ResetPasswordContent() {
   const params = useSearchParams();
-  const token = params.get("token") || "";
+  const otp = params.get("otp") || "";
   const router = useRouter();
   const [pass1, setPass1] = useState("");
   const [pass2, setPass2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const valid = pass1.length >= 8 && pass1 === pass2;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!valid || !token) return;
+    if (!valid || !otp) return;
 
-    router.replace("/login");
+    setError(null);
+    setBusy(true);
+
+    try {
+      await api.resetPassword({
+        otp: otp,
+        new_password: pass1,
+        confirm_new_password: pass2,
+      });
+
+      setSuccess(true);
+
+      // LocalStorage'dan reset bilgilerini temizle
+      localStorage.removeItem("reset_otp");
+      localStorage.removeItem("reset_email");
+
+      // 2 saniye sonra login sayfasına yönlendir
+      setTimeout(() => {
+        router.replace("/login");
+      }, 2000);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Şifre sıfırlama başarısız"
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -26,7 +56,7 @@ function ResetPasswordContent() {
         <ThemeToggle />
       </div>
 
-      {!token ? (
+      {!otp ? (
         <div className="flex w-full max-w-md gap-4 flex-col rounded-xl bg-neutral-800/60 p-6 shadow-lg ring-1 ring-neutral-700 text-center animate-fade-in">
           <span className="font-extrabold text-2xl">Bağlantı Geçersiz</span>
           <p className="text-neutral-300">
@@ -40,6 +70,16 @@ function ResetPasswordContent() {
             Tekrar İste
           </button>
         </div>
+      ) : success ? (
+        <div className="flex w-full max-w-md gap-4 flex-col rounded-xl p-6 shadow-lg ring-1 ring-neutral-700 text-center animate-fade-in">
+          <div className="text-green-500 text-5xl mb-4">✓</div>
+          <span className="text-black dark:text-white font-extrabold text-2xl">
+            Şifre Başarıyla Sıfırlandı
+          </span>
+          <p className="text-neutral-600 dark:text-neutral-300">
+            Giriş sayfasına yönlendiriliyorsunuz...
+          </p>
+        </div>
       ) : (
         <form
           onSubmit={handleSubmit}
@@ -51,6 +91,13 @@ function ResetPasswordContent() {
           <p className="text-sm text-slate-600 dark:text-neutral-300 text-center">
             Güvenlik için bu bağlantı süreli ve tek kullanımlıktır.
           </p>
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <input
             type="password"
             placeholder="Yeni şifre (min 8 karakter)"
@@ -67,10 +114,10 @@ function ResetPasswordContent() {
           />
           <button
             type="submit"
-            disabled={!valid}
+            disabled={!valid || busy}
             className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg w-full text-center p-3 font-semibold"
           >
-            Şifreyi Güncelle
+            {busy ? "Güncelleniyor..." : "Şifreyi Güncelle"}
           </button>
         </form>
       )}

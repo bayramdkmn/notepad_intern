@@ -1,10 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+//const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface LoginRequest {
   email: string;
   password: string;
 }
-
 export interface RegisterRequest {
   firstName: string;
   lastName: string;
@@ -13,7 +13,6 @@ export interface RegisterRequest {
   phone?: string;
   password: string;
 }
-
 export interface AuthResponse {
   access_token: string;
   refresh_token?: string;
@@ -27,7 +26,6 @@ export interface AuthResponse {
     phone_number?: string;
   };
 }
-
 export interface UserResponse {
   id: number;
   email: string;
@@ -39,7 +37,6 @@ export interface UserResponse {
   created_at: string;
   updated_at: string;
 }
-
 export interface ApiError {
   detail: string;
 }
@@ -62,7 +59,6 @@ class ApiClient {
       "Content-Type": "application/json",
     };
 
-    // Login ve register dışındaki tüm endpoint'lere token ekle
     const publicEndpoints = ["/auth/user/login/", "/auth/user/register/"];
     if (token && !publicEndpoints.includes(endpoint)) {
       headers["Authorization"] = `Bearer ${token}`;
@@ -79,12 +75,9 @@ class ApiClient {
       });
 
       if (!response.ok) {
-        // 401 Unauthorized - Token geçersiz veya yok
         if (response.status === 401) {
-          // Token'ı temizle
           this.clearToken();
           
-          // Login sayfasına yönlendir (sadece browser'da)
           if (typeof window !== "undefined") {
             window.location.href = "/login";
           }
@@ -118,7 +111,6 @@ class ApiClient {
     document.cookie = "auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   }
 
-  // Auth endpoints
   async login(data: LoginRequest): Promise<AuthResponse> {
     const formData = new URLSearchParams();
     formData.append("username", data.email);
@@ -207,13 +199,15 @@ class ApiClient {
     });
   }
 
-    async resetPassword(data: {
+  async resetPassword(data: {
+      otp: string;
       new_password: string;
       confirm_new_password: string;
   }): Promise<{ message: string }> {
     return this.request<{ message: string }>("/auth/users/reset-password", {
-      method: "PUT",
+      method: "POST",
       body: JSON.stringify({
+        otp: data.otp,
         new_password: data.new_password,
         confirm_new_password: data.confirm_new_password,
       }),
@@ -230,7 +224,6 @@ class ApiClient {
     }
   }
 
-  // Notes endpoints
   async getNotes(): Promise<any[]> {
     try {
       const response = await this.request<any[]>("/notes/notes/get-all-notes/");
@@ -285,6 +278,13 @@ class ApiClient {
     });
   }
 
+  async deleteSelectedNotes(ids: number[]): Promise<void> {
+    return this.request<void>("/notes/notes/delete-selected-notes", {
+      method: "DELETE",
+      body: JSON.stringify({ ids }),
+    });
+  }
+
   async togglePinNote(id: number): Promise<any> {
     return this.request<any>(`/notes/notes/toggle-pin/${id}`, {
       method: "PATCH",
@@ -332,7 +332,6 @@ class ApiClient {
     }
   }
 
-  // Tags endpoints
   async getTags(): Promise<any[]> {
     try {
       const response = await this.request<any[]>("/tags/tag/get-all-tags");
@@ -372,24 +371,19 @@ class ApiClient {
   }
 
   async addTagToNoteByName(noteId: number, tagName: string): Promise<any> {
-    // Önce etiketi oluştur veya bul
     const tags = await this.getTags();
     let tag = tags.find((t: any) => t.name === tagName);
     
     if (!tag) {
-      // Etiket yoksa oluştur
       tag = await this.createTag(tagName);
     }
-    
-    // Etiketi nota ekle
     return this.addTagToNote(noteId, tag.id);
   }
 }
 
 export const api = new ApiClient(API_URL);
-export const apiClient = api; // Alias for compatibility
+export const apiClient = api; 
 
-// Server-side API client for SSR
 export async function getNotesServerSide(token: string): Promise<any[]> {
   try {
     const url = `${API_URL}/notes/notes/get-all-notes/`;
@@ -398,7 +392,7 @@ export async function getNotesServerSide(token: string): Promise<any[]> {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      cache: 'no-store', // Disable caching for fresh data
+      cache: 'no-store', 
     });
 
     if (!response.ok) {

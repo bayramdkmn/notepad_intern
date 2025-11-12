@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "@/components/dashboard/Sidebar";
 import { api } from "@/lib/api";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AddIcon from "@mui/icons-material/Add";
@@ -39,7 +38,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
   const [editingName, setEditingName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  // Delete confirmation modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
   const [affectedNotes, setAffectedNotes] = useState<Note[]>([]);
@@ -50,7 +48,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
   const [notesToDelete, setNotesToDelete] = useState<Set<number>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Progress tracking
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [progressSteps, setProgressSteps] = useState<
     {
@@ -59,12 +56,10 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
     }[]
   >([]);
 
-  // Success modal
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    // Only fetch if initialTags is empty
     if (initialTags.length === 0) {
       fetchTags();
     }
@@ -120,14 +115,12 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
 
   const handleDeleteTag = async (tag: Tag) => {
     try {
-      // Tüm notları al ve bu etikete sahip notları filtrele
       const allNotes = await api.getNotes();
       const notesWithTag = allNotes.filter((note: Note) =>
         note.tags.some((t) => t.id === tag.id)
       );
 
       if (notesWithTag.length === 0) {
-        // Etiket kullanılmıyorsa direkt sil
         if (confirm("Bu etiketi silmek istediğinizden emin misiniz?")) {
           await api.deleteTag(tag.id);
           setTags(tags.filter((t) => t.id !== tag.id));
@@ -135,10 +128,8 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         return;
       }
 
-      // Tek etikete sahip notları bul
       const single = notesWithTag.filter((note) => note.tags.length === 1);
 
-      // Modal'ı aç ve bilgileri set et
       setTagToDelete(tag);
       setAffectedNotes(notesWithTag);
       setSingleTagNotes(single);
@@ -153,7 +144,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
   const confirmDelete = async () => {
     if (!tagToDelete) return;
 
-    // Tek etiketli notlar için kontrol: yeni etiket yok VE silinmek üzere işaretlenmemişse
     const notesWithoutAction = singleTagNotes.filter(
       (note) =>
         !notesToDelete.has(note.id) && !replacementTags.get(note.id)?.trim()
@@ -170,7 +160,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         return;
       }
 
-      // Kullanıcı onayladı, bu notları silinecekler listesine ekle
       notesWithoutAction.forEach((note) => {
         notesToDelete.add(note.id);
       });
@@ -180,13 +169,9 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
     try {
       setIsDeleting(true);
 
-      // Confirmation modal'ı kapat ve progress modal'ı aç
       setDeleteModalOpen(false);
 
-      // Progress adımlarını hazırla
       const steps: typeof progressSteps = [];
-
-      // Yeni etiket eklenecek notları say
       const notesWithNewTags = singleTagNotes.filter(
         (note) =>
           !notesToDelete.has(note.id) && replacementTags.get(note.id)?.trim()
@@ -224,7 +209,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
 
       let currentStepIndex = 0;
 
-      // 1. Yeni etiketleri ekle
       for (const note of singleTagNotes) {
         const newTagName = replacementTags.get(note.id);
         const shouldDeleteNote = notesToDelete.has(note.id);
@@ -264,7 +248,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         }
       }
 
-      // 2. Etiketi sil
       setProgressSteps((prev) =>
         prev.map((step, idx) =>
           idx === currentStepIndex ? { ...step, status: "processing" } : step
@@ -281,7 +264,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
       );
       currentStepIndex++;
 
-      // 3. Notları sil
       for (const note of singleTagNotes) {
         const shouldDeleteNote = notesToDelete.has(note.id);
         if (shouldDeleteNote) {
@@ -338,11 +320,9 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         finalSuccessMessage += `\n\n🗑️ Silinen notlar:\n${deletedNotes}`;
       }
 
-      // Progress modal'ı kapat
       setProgressModalOpen(false);
       closeDeleteModal();
 
-      // Success modal'ı aç
       setSuccessMessage(finalSuccessMessage);
       setSuccessModalOpen(true);
     } catch (error) {
@@ -378,7 +358,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
     newMap.set(noteId, tagName);
     setReplacementTags(newMap);
 
-    // Etiket girilince "notu sil" seçeneğini kaldır
     if (tagName.trim()) {
       const newSet = new Set(notesToDelete);
       newSet.delete(noteId);
@@ -392,7 +371,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
       newSet.delete(noteId);
     } else {
       newSet.add(noteId);
-      // Not silinecekse etiket inputunu temizle
       const newMap = new Map(replacementTags);
       newMap.delete(noteId);
       setReplacementTags(newMap);
@@ -411,232 +389,227 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
   };
 
   return (
-    <div className="flex min-h-screen w-full  dark:from-zinc-900 dark:via-blue-950/20 dark:to-blue-950/10">
-      <Sidebar />
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-5xl mt-14 lg:mt-0">
-          <div className="mb-8 relative">
-            <div className="absolute -top-10 -left-10 w-72 h-72 bg-blue-400/10 dark:bg-blue-600/10 rounded-full blur-3xl"></div>
-            <div className="absolute -top-5 -right-10 w-60 h-60 bg-blue-400/10 dark:bg-blue-600/10 rounded-full blur-3xl"></div>
+    <div className="mx-auto max-w-5xl mt-14 md:mt-0 animate-fade-in">
+      <div className="mb-8 relative animate-slide-in-top">
+        <div className="absolute -top-10 -left-10 w-72 h-72 bg-blue-400/10 dark:bg-blue-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute -top-5 -right-10 w-60 h-60 bg-blue-400/10 dark:bg-blue-600/10 rounded-full blur-3xl"></div>
 
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-4">
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                  <div className="relative p-4 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl transform group-hover:scale-105 transition-transform">
-                    <LocalOfferIcon className="text-white text-3xl" />
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-3xl sm:text-4xl font-black text-blue-600 dark:text-white ">
-                    Etiket Yönetimi
-                  </h1>
-                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-                    Notlarınızı düzenleyin ve kategorize edin
-                  </p>
-                </div>
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
+              <div className="relative p-4 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl transform group-hover:scale-105 transition-transform">
+                <LocalOfferIcon className="text-white text-3xl" />
               </div>
-              {tags.length > 0 && (
-                <div className="relative group">
-                  <div className="absolute inset-0 rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                  <div className="relative flex items-center gap-3 px-5 py-3 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-zinc-700/50">
-                    <div className="flex flex-col items-center">
-                      <span className="text-3xl font-black bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                        {tags.length}
-                      </span>
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400  tracking-wider">
-                        Etiket
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black text-blue-600 dark:text-white ">
+                Etiket Yönetimi
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+                Notlarınızı düzenleyin ve kategorize edin
+              </p>
             </div>
           </div>
-
-          {/* Add New Tag Form - Ultra Modern */}
-          <form
-            onSubmit={handleAddTag}
-            className="relative group mb-8 animate-in slide-in-from-bottom-4 duration-500"
-          >
-            <div className="absolute inset-0  rounded-2xl blur opacity-10 group-hover:opacity-15 transition-opacity"></div>
-            <div className="relative bg-white/90 dark:bg-zinc-800/90 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-zinc-700/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full"></div>
-                  <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></div>
-                </div>
-                <span className="text-base font-bold bg-gradient-to-r from-green-700 via-emerald-700 to-teal-700 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                  Yeni Etiket Oluştur
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 relative group/input">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl blur opacity-0 group-hover/input:opacity-10 transition-opacity"></div>
-                  <input
-                    type="text"
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    placeholder="✨ Etiket adını buraya yazın..."
-                    className="relative w-full px-5 py-3.5 bg-gray-50/50 dark:bg-zinc-900/50 backdrop-blur-sm border-2 border-gray-200 dark:border-zinc-700 rounded-xl text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-green-500 dark:focus:border-green-500 focus:ring-4 focus:ring-green-500/20 transition-all"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isAdding || !newTagName.trim()}
-                  className="group/btn relative px-6 py-3.5 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
-                  <span className="relative flex items-center gap-2">
-                    <AddIcon className="text-xl" />
-                    {isAdding ? "Oluşturuluyor..." : "Oluştur"}
+          {tags.length > 0 && (
+            <div className="relative group">
+              <div className="absolute inset-0 rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="relative flex items-center gap-3 px-5 py-3 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-zinc-700/50">
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl font-black bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                    {tags.length}
                   </span>
-                </button>
-              </div>
-            </div>
-          </form>
-
-          {isLoading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="relative group"
-                  style={{ animationDelay: `${i * 100}ms` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl blur opacity-5 animate-pulse"></div>
-                  <div className="relative h-24 bg-white/50 dark:bg-zinc-800/50 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-zinc-700/50 animate-pulse"></div>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400  tracking-wider">
+                    Etiket
+                  </span>
                 </div>
-              ))}
-            </div>
-          ) : tags.length === 0 ? (
-            <div className="relative group animate-in fade-in zoom-in duration-700">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-blue-500 to-pink-500 rounded-3xl blur-2xl opacity-5 group-hover:opacity-10 transition-opacity"></div>
-              <div className="relative bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl rounded-3xl p-16 text-center border border-white/20 dark:border-zinc-700/50">
-                <div className="relative inline-block mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full blur opacity-20"></div>
-                  <div className="relative w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center transform group-hover:scale-105 transition-transform">
-                    <LocalOfferIcon className="text-white text-5xl" />
-                  </div>
-                </div>
-                <h3 className="text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-3">
-                  Henüz Etiket Bulunmuyor
-                </h3>
-                <p className="text-base text-gray-600 dark:text-gray-400 mb-2 max-w-md mx-auto">
-                  İlk etiketinizi oluşturmak için yukarıdaki formu kullanın
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500">
-                  ✨ Etiketler notlarınızı organize etmenize yardımcı olur
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-10 bg-gradient-to-b from-blue-600 to-blue-600 rounded-full"></div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                      Tüm Etiketleriniz
-                    </h2>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {tags.length} etiket bulundu
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4">
-                {tags.map((tag, index) => (
-                  <div
-                    key={tag.id}
-                    className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-blue-500 to-pink-500 rounded-2xl blur opacity-0 group-hover:opacity-10 transition-opacity"></div>
-                    <div className="relative bg-white/90 dark:bg-zinc-800/90 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-zinc-700/50 p-5 group-hover:border-blue-200 dark:group-hover:border-blue-800 transition-all">
-                      {editingId === tag.id ? (
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <div className="flex-1 relative">
-                            <input
-                              type="text"
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              onKeyPress={(e) => {
-                                if (e.key === "Enter") handleUpdateTag(tag.id);
-                                if (e.key === "Escape") cancelEditing();
-                              }}
-                              className="w-full px-5 py-3 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-sm border-2 border-blue-500 dark:border-blue-600 rounded-xl text-base text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all"
-                              autoFocus
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleUpdateTag(tag.id)}
-                              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all font-semibold text-sm transform hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                              <SaveIcon fontSize="small" />
-                              Kaydet
-                            </button>
-                            <button
-                              onClick={cancelEditing}
-                              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all font-semibold text-sm transform hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                              <CloseIcon fontSize="small" />
-                              İptal
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="relative group/icon">
-                              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl blur opacity-20 group-hover/icon:opacity-30 transition-opacity"></div>
-                              <div className="relative p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl group-hover/icon:scale-105 transition-transform">
-                                <LocalOfferIcon className="text-white text-xl" />
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                                {tag.name}
-                              </h3>
-                              {tag.notes_count !== undefined && (
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse"></div>
-                                  <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                                    {tag.notes_count}{" "}
-                                    {tag.notes_count === 1 ? "not" : "not"}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() => startEditing(tag)}
-                              className="group/btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-zinc-900 border-2 border-gray-300 dark:border-zinc-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all font-semibold text-sm text-gray-700 dark:text-gray-300 transform hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                              <EditIcon className="text-lg group-hover/btn:text-blue-600 dark:group-hover/btn:text-blue-400 transition-colors" />
-                              Düzenle
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTag(tag)}
-                              className="group/btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-zinc-900 border-2 border-red-300 dark:border-red-800 rounded-xl hover:border-red-500 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-semibold text-sm text-red-600 dark:text-red-400 transform hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                              <DeleteIcon className="text-lg" />
-                              Sil
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           )}
         </div>
-      </main>
+      </div>
+
+      {/* Add New Tag Form - Ultra Modern */}
+      <form
+        onSubmit={handleAddTag}
+        className="relative group mb-8 animate-in slide-in-from-bottom-4 duration-500"
+      >
+        <div className="absolute inset-0  rounded-2xl blur opacity-10 group-hover:opacity-15 transition-opacity"></div>
+        <div className="relative bg-white/90 dark:bg-zinc-800/90 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-zinc-700/50">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full"></div>
+              <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></div>
+            </div>
+            <span className="text-base font-bold bg-gradient-to-r from-green-700 via-emerald-700 to-teal-700 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+              Yeni Etiket Oluştur
+            </span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative group/input">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl blur opacity-0 group-hover/input:opacity-10 transition-opacity"></div>
+              <input
+                type="text"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                placeholder="✨ Etiket adını buraya yazın..."
+                className="relative w-full px-5 py-3.5 bg-gray-50/50 dark:bg-zinc-900/50 backdrop-blur-sm border-2 border-gray-200 dark:border-zinc-700 rounded-xl text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-green-500 dark:focus:border-green-500 focus:ring-4 focus:ring-green-500/20 transition-all"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isAdding || !newTagName.trim()}
+              className="group/btn relative px-6 py-3.5 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+              <span className="relative flex items-center gap-2">
+                <AddIcon className="text-xl" />
+                {isAdding ? "Oluşturuluyor..." : "Oluştur"}
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {isLoading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="relative group"
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl blur opacity-5 animate-pulse"></div>
+              <div className="relative h-24 bg-white/50 dark:bg-zinc-800/50 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-zinc-700/50 animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+      ) : tags.length === 0 ? (
+        <div className="relative group animate-in fade-in zoom-in duration-700">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-blue-500 to-pink-500 rounded-3xl blur-2xl opacity-5 group-hover:opacity-10 transition-opacity"></div>
+          <div className="relative bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl rounded-3xl p-16 text-center border border-white/20 dark:border-zinc-700/50">
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full blur opacity-20"></div>
+              <div className="relative w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center transform group-hover:scale-105 transition-transform">
+                <LocalOfferIcon className="text-white text-5xl" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-3">
+              Henüz Etiket Bulunmuyor
+            </h3>
+            <p className="text-base text-gray-600 dark:text-gray-400 mb-2 max-w-md mx-auto">
+              İlk etiketinizi oluşturmak için yukarıdaki formu kullanın
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">
+              ✨ Etiketler notlarınızı organize etmenize yardımcı olur
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-10 bg-gradient-to-b from-blue-600 to-blue-600 rounded-full"></div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Tüm Etiketleriniz
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {tags.length} etiket bulundu
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            {tags.map((tag, index) => (
+              <div
+                key={tag.id}
+                className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-blue-500 to-pink-500 rounded-2xl blur opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                <div className="relative bg-white/90 dark:bg-zinc-800/90 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-zinc-700/50 p-5 group-hover:border-blue-200 dark:group-hover:border-blue-800 transition-all">
+                  {editingId === tag.id ? (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") handleUpdateTag(tag.id);
+                            if (e.key === "Escape") cancelEditing();
+                          }}
+                          className="w-full px-5 py-3 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-sm border-2 border-blue-500 dark:border-blue-600 rounded-xl text-base text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdateTag(tag.id)}
+                          className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all font-semibold text-sm transform hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          <SaveIcon fontSize="small" />
+                          Kaydet
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all font-semibold text-sm transform hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          <CloseIcon fontSize="small" />
+                          İptal
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="relative group/icon">
+                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl blur opacity-20 group-hover/icon:opacity-30 transition-opacity"></div>
+                          <div className="relative p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl group-hover/icon:scale-105 transition-transform">
+                            <LocalOfferIcon className="text-white text-xl" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                            {tag.name}
+                          </h3>
+                          {tag.notes_count !== undefined && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse"></div>
+                              <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                                {tag.notes_count}{" "}
+                                {tag.notes_count === 1 ? "not" : "not"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => startEditing(tag)}
+                          className="group/btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-zinc-900 border-2 border-gray-300 dark:border-zinc-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all font-semibold text-sm text-gray-700 dark:text-gray-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          <EditIcon className="text-lg group-hover/btn:text-blue-600 dark:group-hover/btn:text-blue-400 transition-colors" />
+                          Düzenle
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTag(tag)}
+                          className="group/btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-zinc-900 border-2 border-red-300 dark:border-red-800 rounded-xl hover:border-red-500 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-semibold text-sm text-red-600 dark:text-red-400 transform hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          <DeleteIcon className="text-lg" />
+                          Sil
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && tagToDelete && (
@@ -866,7 +839,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
                           : "rgb(243 244 246)",
                     }}
                   >
-                    {/* Icon */}
                     <div className="flex-shrink-0 mt-0.5">
                       {step.status === "done" && (
                         <CheckCircleIcon className="text-green-600" />
@@ -906,11 +878,9 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         </div>
       )}
 
-      {/* Success Modal */}
       {successModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-2xl max-w-lg w-full">
-            {/* Success Header */}
             <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-t-xl">
               <div className="flex items-center gap-3 text-white">
                 <CheckCircleIcon fontSize="large" />
@@ -918,7 +888,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
               </div>
             </div>
 
-            {/* Success Message */}
             <div className="p-6">
               <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-500 rounded-lg p-4">
                 <p className="text-sm whitespace-pre-line font-medium text-green-900 dark:text-green-100">
@@ -927,7 +896,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="bg-gray-50 dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700 p-6">
               <button
                 onClick={() => setSuccessModalOpen(false)}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Notepad - Ayarlar",
-  description: "Hesap ayarlarınızı yönetin",
+  description: "Uygulama ayarlarınızı yönetin",
 };
 
 export default function SettingsLayout({

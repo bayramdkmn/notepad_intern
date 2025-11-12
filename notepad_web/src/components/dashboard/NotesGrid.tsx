@@ -9,7 +9,9 @@ import FiltersBar, {
   SortOption,
 } from "@/components/dashboard/FiltersBar";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useNotes, Note, Tag } from "@/providers/NotesProvider";
+import { api } from "@/lib/api";
 
 interface NotesGridProps {
   searchQuery?: string;
@@ -21,8 +23,13 @@ export default function NotesGrid({
   initialNotes = [],
 }: NotesGridProps) {
   const router = useRouter();
-  const { notes: contextNotes, isLoading, error } = useNotes();
+  const { notes: contextNotes, isLoading, error, refreshNotes } = useNotes();
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedNoteIds, setSelectedNoteIds] = useState<Set<number>>(
+    new Set()
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     tags: [],
     dateRange: { start: null, end: null },
@@ -190,6 +197,44 @@ export default function NotesGrid({
     return `${day}.${month}.${year}\n${hours}:${minutes}`;
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedNoteIds(new Set());
+  };
+
+  const toggleNoteSelection = (noteId: number) => {
+    const newSelection = new Set(selectedNoteIds);
+    if (newSelection.has(noteId)) {
+      newSelection.delete(noteId);
+    } else {
+      newSelection.add(noteId);
+    }
+    setSelectedNoteIds(newSelection);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedNoteIds.size === 0) return;
+
+    const confirmed = confirm(
+      `${selectedNoteIds.size} notu silmek istediğinizden emin misiniz?`
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await api.deleteSelectedNotes(Array.from(selectedNoteIds));
+      setSelectedNoteIds(new Set());
+      setSelectionMode(false);
+      await refreshNotes();
+      router.refresh();
+    } catch (error) {
+      console.error("Notlar silinirken hata:", error);
+      alert("Notlar silinirken bir hata oluştu");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4 stagger-children">
@@ -219,6 +264,11 @@ export default function NotesGrid({
           onSortChange={setSortOption}
           availableTags={availableTags}
           currentSort={sortOption}
+          selectionMode={selectionMode}
+          onToggleSelectionMode={toggleSelectionMode}
+          selectedCount={selectedNoteIds.size}
+          onDeleteSelected={handleDeleteSelected}
+          isDeleting={isDeleting}
         />
       </div>
 
@@ -268,6 +318,9 @@ export default function NotesGrid({
               onClick={() => setSelectedNote(note)}
               formatDate={formatDate}
               formatFullDate={formatFullDate}
+              selectionMode={selectionMode}
+              isSelected={selectedNoteIds.has(note.id)}
+              onToggleSelect={() => toggleNoteSelection(note.id)}
             />
           ))
         )}

@@ -31,6 +31,7 @@ interface AuthContextType {
     phone: string;
   }) => Promise<void>;
   resetPassword: (
+    otp: string,
     new_password: string,
     confirm_new_password: string
   ) => Promise<void>;
@@ -203,13 +204,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (
+    otp: string,
     new_password: string,
     confirm_new_password?: string
   ) => {
     try {
       await api.resetPassword({
+        otp: otp,
         new_password: new_password,
-        confirm_new_password: confirm_new_password || new_password, // undefined ise new_password kullan
+        confirm_new_password: confirm_new_password || new_password,
       });
     } catch (error) {
       console.error("Reset password failed:", error);

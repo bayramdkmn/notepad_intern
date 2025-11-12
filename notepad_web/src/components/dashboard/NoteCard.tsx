@@ -8,6 +8,9 @@ interface NoteCardProps {
   onClick: () => void;
   formatDate: (dateString: string, relative?: boolean) => string;
   formatFullDate: (dateString: string) => string;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 export default function NoteCard({
@@ -15,6 +18,9 @@ export default function NoteCard({
   onClick,
   formatDate,
   formatFullDate,
+  selectionMode = false,
+  isSelected = false,
+  onToggleSelect,
 }: NoteCardProps) {
   const { togglePin } = useNotes();
 
@@ -23,11 +29,28 @@ export default function NoteCard({
     await togglePin(note.id);
   };
 
+  const handleCardClick = () => {
+    if (selectionMode && onToggleSelect) {
+      onToggleSelect();
+    } else {
+      onClick();
+    }
+  };
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onToggleSelect) {
+      onToggleSelect();
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleCardClick}
       className={`group relative rounded-xl p-5 border-2 transition-all duration-300 cursor-pointer overflow-hidden min-h-[180px] flex flex-col ${
-        note.is_pinned
+        isSelected
+          ? "bg-blue-100 dark:bg-blue-900/40 border-blue-500 dark:border-blue-500 shadow-xl"
+          : note.is_pinned
           ? "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-200/60 dark:hover:shadow-blue-900/40"
           : note.is_feature_note && note.feature_date
           ? "bg-white dark:bg-zinc-800 border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50"
@@ -48,9 +71,23 @@ export default function NoteCard({
       ></div>
 
       {/* Header - Başlık ve İkonlar */}
-      <div className="flex items-start justify-between gap-3 mb-3">
+      <div
+        className={`flex items-start justify-between gap-3 mb-3 
+        }`}
+      >
+        {/* Seçim Checkbox - Sol üst köşe */}
+        {selectionMode && (
+          <div onClick={handleCheckboxClick} className="animate-scale-in">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => {}}
+              className="w-5 h-5 rounded border-2 border-gray-400 dark:border-gray-500 cursor-pointer accent-blue-600 transition-all"
+            />
+          </div>
+        )}
         <h3
-          className={`flex-1 text-lg font-bold transition-colors line-clamp-2 flex items-baseline gap-2 ${
+          className={`flex-1 text-lg font-bold transition-all duration-700 ease-in-out line-clamp-2 flex items-baseline gap-2 ${
             note.is_pinned
               ? "text-blue-900 dark:text-blue-100 group-hover:text-blue-700 dark:group-hover:text-blue-300"
               : "text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400"

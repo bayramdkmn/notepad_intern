@@ -101,7 +101,7 @@ export default function Sidebar() {
             </div>
             <div className="flex flex-col">
               <h1 className="text-gray-900 text-base font-bold leading-normal dark:text-white">
-                Brain AI
+                Notepad AI
               </h1>
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function Sidebar() {
             </div>
             <div className="flex flex-col">
               <h1 className="text-gray-900 text-base font-bold leading-normal dark:text-white">
-                Brain AI
+                Notepad AI
               </h1>
             </div>
           </div>

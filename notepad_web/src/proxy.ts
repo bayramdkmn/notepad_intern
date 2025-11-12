@@ -5,7 +5,7 @@ const protectedRoutes = ['/settings', '/tags', '/profile'];
 
 const publicRoutes = ['/login', '/register', '/forgotPassword', '/reset-password', '/auth-redirect'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Token kontrolü

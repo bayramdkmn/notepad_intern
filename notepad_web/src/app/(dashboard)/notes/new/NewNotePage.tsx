@@ -125,7 +125,7 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700 shadow-sm animate-slide-in-top">
+      <div className="sticky top-0 z-10 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700 shadow-sm animate-slide-in-top rounded-xl">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-3 sm:gap-4">
             <button
@@ -156,7 +156,7 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-5xl mx-auto  py-4 sm:py-6 lg:py-8">
         <div className="bg-white dark:bg-zinc-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden animate-scale-in">
           {/* Title Input */}
           <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-zinc-700 animate-slide-in-left">

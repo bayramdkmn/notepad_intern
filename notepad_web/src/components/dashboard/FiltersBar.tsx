@@ -7,6 +7,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import EventNoteIcon from "@mui/icons-material/EventNote";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 export interface FilterOptions {
   tags: string[];
   dateRange: {
@@ -25,6 +27,11 @@ interface FiltersBarProps {
   onSortChange: (sort: SortOption) => void;
   availableTags: string[];
   currentSort: SortOption;
+  selectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
+  selectedCount?: number;
+  onDeleteSelected?: () => void;
+  isDeleting?: boolean;
 }
 
 export default function FiltersBar({
@@ -32,6 +39,11 @@ export default function FiltersBar({
   onSortChange,
   availableTags,
   currentSort,
+  selectionMode = false,
+  onToggleSelectionMode,
+  selectedCount = 0,
+  onDeleteSelected,
+  isDeleting = false,
 }: FiltersBarProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -223,6 +235,48 @@ export default function FiltersBar({
           <span className="hidden sm:inline">İşaretlenmiş</span>
           <span className="sm:hidden">İşaretli</span>
         </button>
+        {/* Çoklu Seçim Butonu */}
+        {onToggleSelectionMode && (
+          <button
+            onClick={onToggleSelectionMode}
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 hover:scale-105 active:scale-95 ${
+              selectionMode
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700"
+            }`}
+          >
+            {selectionMode ? (
+              <>
+                <CloseIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>İptal</span>
+              </>
+            ) : (
+              <>
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded pointer-events-none"
+                  checked={false}
+                  readOnly
+                />
+                <span>Seç</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Seçili notları sil butonu */}
+        {selectionMode && selectedCount > 0 && onDeleteSelected && (
+          <button
+            onClick={onDeleteSelected}
+            disabled={isDeleting}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-red-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-red-700 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <DeleteIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span>
+              {isDeleting ? "Siliniyor..." : `Sil (${selectedCount})`}
+            </span>
+          </button>
+        )}
       </div>
 
       {showFilters && (

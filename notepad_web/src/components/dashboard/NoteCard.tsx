@@ -63,12 +63,12 @@ export default function NoteCard({
       <div
         className={`absolute top-0 left-0 w-full h-1 ${
           note.is_pinned && note.is_feature_note && note.feature_date
-            ? "bg-gradient-to-r from-blue-500 via-slate-500 to-blue-500" // Hem pinned hem future
+            ? "bg-gradient-to-r from-blue-500 via-slate-500 to-blue-500"
             : note.is_pinned
-            ? "bg-gradient-to-r from-blue-400 to-blue-600" // Sadece pinned
+            ? "bg-gradient-to-r from-blue-400 to-blue-600"
             : note.is_feature_note && note.feature_date
-            ? "bg-gradient-to-r from-green-800 to-green-600" // Sadece future
-            : "bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700" // Normal not
+            ? "bg-gradient-to-r from-green-800 to-green-600"
+            : "bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700"
         }`}
       ></div>
 

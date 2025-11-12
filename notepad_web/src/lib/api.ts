@@ -7,16 +7,6 @@ import type {
   AuthResponse,
   UserResponse,
   ApiError,
-  UpdateUserRequest,
-  ChangePasswordRequest,
-  Note,
-  CreateNoteRequest,
-  UpdateNoteRequest,
-  Tag,
-  CreateTagRequest,
-  UpdateTagRequest,
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
 } from "@/types";
 
 class ApiClient {
@@ -132,7 +122,6 @@ class ApiClient {
       password: data.password,
     });
 
-    // User bilgisini ekle
     return {
       ...loginResponse,
       user: {

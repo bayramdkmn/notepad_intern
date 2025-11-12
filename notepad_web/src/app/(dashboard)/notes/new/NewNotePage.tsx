@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 import { useNotes } from "@/providers/NotesProvider";
+import { useTags } from "@/providers/TagsProvider";
 import type { Tag } from "@/types";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
@@ -23,14 +23,13 @@ interface NewNotePageProps {
 
 export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
   const router = useRouter();
-  const { refreshNotes } = useNotes();
+  const { createNote } = useNotes();
+  const { tags: contextTags, createTag, isLoading: tagsLoading } = useTags();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<Tag[]>(initialTags);
   const [newTagName, setNewTagName] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Medium");
 
@@ -41,31 +40,14 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
   // Validation states
   const [showErrors, setShowErrors] = useState(false);
 
-  useEffect(() => {
-    // Only fetch if initialTags is empty
-    if (initialTags.length === 0) {
-      fetchTags();
-    }
-  }, []);
-
-  const fetchTags = async () => {
-    try {
-      setIsLoading(true);
-      const tags = await api.getTags();
-      setAvailableTags(Array.isArray(tags) ? tags : []);
-    } catch (error) {
-      setAvailableTags([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Use context tags if available, otherwise use initialTags
+  const availableTags = contextTags.length > 0 ? contextTags : initialTags;
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) return;
 
     try {
-      const newTag = await api.createTag(newTagName.trim());
-      setAvailableTags([...availableTags, newTag]);
+      const newTag = await createTag(newTagName.trim());
       setSelectedTags([...selectedTags, newTagName.trim()]);
       setNewTagName("");
       setShowTagInput(false);
@@ -91,7 +73,7 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
 
     try {
       setIsSaving(true);
-      await api.createNote({
+      await createNote({
         title: title.trim(),
         content: content.trim(),
         tags: selectedTags,
@@ -103,7 +85,6 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
             : new Date().toISOString(),
       });
 
-      await refreshNotes();
       router.push("/");
     } catch (error) {
       console.error("Failed to create note:", error);
@@ -296,7 +277,7 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
             )}
 
             {/* Available Tags */}
-            {isLoading ? (
+            {tagsLoading ? (
               <div className="space-y-2">
                 <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                 <div className="flex gap-2">

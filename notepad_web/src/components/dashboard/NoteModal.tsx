@@ -8,7 +8,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useNotes } from "@/providers/NotesProvider";
-import { apiClient } from "@/lib/api";
 import type { Tag, Note } from "@/types";
 
 interface NoteModalProps {
@@ -51,22 +50,14 @@ export default function NoteModal({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const updatedNoteFromBackend = await apiClient.updateNote(
-        currentNote.id,
-        {
-          title: editedTitle,
-          content: editedContent,
-          priority: editedPriority,
-          tags: editedTags.filter((tag) => tag.length > 0),
-        }
-      );
+      const updatedNote = await updateNote(currentNote.id, {
+        title: editedTitle,
+        content: editedContent,
+        priority: editedPriority,
+        tags: editedTags.filter((tag) => tag.length > 0),
+      });
 
-      if (updateNote) {
-        updateNote(updatedNoteFromBackend);
-      }
-
-      setCurrentNote(updatedNoteFromBackend);
-
+      setCurrentNote(updatedNote);
       setIsEditing(false);
     } catch (error) {
       console.error("Not güncelleme hatası:", error);

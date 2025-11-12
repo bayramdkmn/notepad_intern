@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "./AuthProvider";
-import type { Note, Tag, NotesContextType } from "@/types";
+import type { Note, NotesContextType } from "@/types";
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
 
@@ -102,37 +102,89 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     await fetchNotes();
   }, [fetchNotes]);
 
-  const addNote = useCallback(
-    (note: Note) => {
-      setNotes((prev) => {
-        const updated = [note, ...prev];
-        saveToStorage(updated);
-        return updated;
-      });
+  const createNote = useCallback(
+    async (data: {
+      title: string;
+      content: string;
+      tags?: string[];
+      priority?: "Low" | "Medium" | "High";
+      is_feature_note?: boolean;
+      feature_date?: string;
+    }) => {
+      try {
+        const newNote = await apiClient.createNote(data);
+        setNotes((prev) => {
+          const updated = [newNote, ...prev];
+          saveToStorage(updated);
+          return updated;
+        });
+        return newNote;
+      } catch (err: any) {
+        console.error("Not oluşturma hatası:", err);
+        throw err;
+      }
     },
     [saveToStorage]
   );
 
   const updateNote = useCallback(
-    (updatedNote: Note) => {
-      setNotes((prev) => {
-        const updated = prev.map((note) =>
-          note.id === updatedNote.id ? updatedNote : note
-        );
-        saveToStorage(updated);
-        return updated;
-      });
+    async (
+      id: number,
+      data: {
+        title?: string;
+        content?: string;
+        tags?: string[];
+        priority?: "Low" | "Medium" | "High";
+      }
+    ) => {
+      try {
+        const updatedNote = await apiClient.updateNote(id, data);
+        setNotes((prev) => {
+          const updated = prev.map((note) =>
+            note.id === id ? updatedNote : note
+          );
+          saveToStorage(updated);
+          return updated;
+        });
+        return updatedNote;
+      } catch (err: any) {
+        console.error("Not güncelleme hatası:", err);
+        throw err;
+      }
     },
     [saveToStorage]
   );
 
   const deleteNote = useCallback(
-    (id: number) => {
-      setNotes((prev) => {
-        const updated = prev.filter((note) => note.id !== id);
-        saveToStorage(updated);
-        return updated;
-      });
+    async (id: number) => {
+      try {
+        await apiClient.deleteNote(id);
+        setNotes((prev) => {
+          const updated = prev.filter((note) => note.id !== id);
+          saveToStorage(updated);
+          return updated;
+        });
+      } catch (err: any) {
+        console.error("Not silme hatası:", err);
+        throw err;
+      }
+    },
+    [saveToStorage]
+  );
+
+  const deleteSelectedNotes = useCallback(
+    async (ids: number[]) => {
+      try {
+        await apiClient.deleteSelectedNotes(ids);
+        setNotes((prev) => {
+          const updated = prev.filter((note) => !ids.includes(note.id));
+          saveToStorage(updated);
+          return updated;
+        });
+      } catch (err: any) {
+        console.error("Toplu not silme hatası:", err);
+        throw err;
+      }
     },
     [saveToStorage]
   );
@@ -141,6 +193,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     async (id: number) => {
       const previousNotes = notes;
 
+      // Optimistic update
       setNotes((prev) => {
         const updated = prev.map((note) =>
           note.id === id ? { ...note, is_pinned: !note.is_pinned } : note
@@ -155,6 +208,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         console.error("Toggle pin hatası:", err);
         setNotes(previousNotes);
         saveToStorage(previousNotes);
+        throw err;
       }
     },
     [notes, saveToStorage]
@@ -172,9 +226,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     error,
     refreshNotes,
-    addNote,
+    createNote,
     updateNote,
     deleteNote,
+    deleteSelectedNotes,
     togglePin,
   };
 

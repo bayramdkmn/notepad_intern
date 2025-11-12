@@ -12,7 +12,6 @@ import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNotes } from "@/providers/NotesProvider";
 import type { Note, Tag } from "@/types";
-import { api } from "@/lib/api";
 
 interface NotesGridProps {
   searchQuery?: string;
@@ -24,7 +23,13 @@ export default function NotesGrid({
   initialNotes = [],
 }: NotesGridProps) {
   const router = useRouter();
-  const { notes: contextNotes, isLoading, error, refreshNotes } = useNotes();
+  const {
+    notes: contextNotes,
+    isLoading,
+    error,
+    refreshNotes,
+    deleteSelectedNotes,
+  } = useNotes();
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<number>>(
@@ -223,10 +228,9 @@ export default function NotesGrid({
 
     setIsDeleting(true);
     try {
-      await api.deleteSelectedNotes(Array.from(selectedNoteIds));
+      await deleteSelectedNotes(Array.from(selectedNoteIds));
       setSelectedNoteIds(new Set());
       setSelectionMode(false);
-      await refreshNotes();
       router.refresh();
     } catch (error) {
       console.error("Notlar silinirken hata:", error);

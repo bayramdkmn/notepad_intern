@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
+import { useTags } from "@/providers/TagsProvider";
+import { useNotes } from "@/providers/NotesProvider";
+import { apiClient } from "@/lib/api"; // Tag ilişkileri için gerekli
 import type { Tag, Note } from "@/types";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AddIcon from "@mui/icons-material/Add";
@@ -20,8 +22,15 @@ interface TagsPageProps {
 }
 
 export default function TagsPage({ initialTags = [] }: TagsPageProps) {
-  const [tags, setTags] = useState<Tag[]>(initialTags);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    tags: contextTags,
+    createTag,
+    updateTag,
+    deleteTag,
+    isLoading: tagsLoading,
+  } = useTags();
+  const { notes, deleteNote } = useNotes();
+
   const [newTagName, setNewTagName] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -48,24 +57,8 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  useEffect(() => {
-    if (initialTags.length === 0) {
-      fetchTags();
-    }
-  }, []);
-
-  const fetchTags = async () => {
-    try {
-      setIsLoading(true);
-      const data = await api.getTags();
-      setTags(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Failed to fetch tags:", error);
-      setTags([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Use context tags if available, otherwise use initialTags
+  const tags = contextTags.length > 0 ? contextTags : initialTags;
 
   const handleAddTag = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,8 +66,7 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
 
     try {
       setIsAdding(true);
-      const newTag = await api.createTag(newTagName.trim());
-      setTags([...tags, newTag]);
+      await createTag(newTagName.trim());
       setNewTagName("");
     } catch (error) {
       console.error("Failed to create tag:", error);
@@ -88,12 +80,7 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
     if (!editingName.trim()) return;
 
     try {
-      await api.updateTag(id, editingName.trim());
-      setTags(
-        tags.map((tag) =>
-          tag.id === id ? { ...tag, name: editingName.trim() } : tag
-        )
-      );
+      await updateTag(id, editingName.trim());
       setEditingId(null);
       setEditingName("");
     } catch (error) {
@@ -104,20 +91,20 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
 
   const handleDeleteTag = async (tag: Tag) => {
     try {
-      const allNotes = await api.getNotes();
-      const notesWithTag = allNotes.filter((note: Note) =>
+      const notesWithTag = notes.filter((note: Note) =>
         note.tags.some((t) => t.id === tag.id)
       );
 
       if (notesWithTag.length === 0) {
         if (confirm("Bu etiketi silmek istediğinizden emin misiniz?")) {
-          await api.deleteTag(tag.id);
-          setTags(tags.filter((t) => t.id !== tag.id));
+          await deleteTag(tag.id);
         }
         return;
       }
 
-      const single = notesWithTag.filter((note) => note.tags.length === 1);
+      const single = notesWithTag.filter(
+        (note: Note) => note.tags.length === 1
+      );
 
       setTagToDelete(tag);
       setAffectedNotes(notesWithTag);
@@ -212,7 +199,7 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
           );
 
           try {
-            await api.addTagToNoteByName(note.id, newTagName.trim());
+            await apiClient.addTagToNoteByName(note.id, newTagName.trim());
 
             setProgressSteps((prev) =>
               prev.map((step, idx) =>
@@ -243,8 +230,7 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         )
       );
 
-      await api.deleteTag(tagToDelete.id);
-      setTags(tags.filter((t) => t.id !== tagToDelete.id));
+      await deleteTag(tagToDelete.id);
 
       setProgressSteps((prev) =>
         prev.map((step, idx) =>
@@ -265,7 +251,7 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
           );
 
           try {
-            await api.deleteNote(note.id);
+            await deleteNote(note.id);
             setProgressSteps((prev) =>
               prev.map((step, idx) =>
                 idx === currentStepIndex ? { ...step, status: "done" } : step
@@ -459,7 +445,7 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         </div>
       </form>
 
-      {isLoading ? (
+      {tagsLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div

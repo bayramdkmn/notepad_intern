@@ -283,14 +283,16 @@ async def request_password_reset(payload: RequestPasswordResetSchema, response: 
         value=otp_code,
         max_age=15*60,
         httponly=True,
-        secure=True
+        secure=False,
+
     )
     response.set_cookie(
         key="reset_email",
         value=user.email,
         max_age=15*60,
         httponly=True,
-        secure=True
+        secure=False,
+        samesite = "None"
     )
 
     return {"detail": "OTP created (DEV MODE).", "otp": otp_code, "expires_at": expires_at.isoformat()}

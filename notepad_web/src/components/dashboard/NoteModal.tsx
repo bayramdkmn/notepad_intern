@@ -8,6 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useNotes } from "@/providers/NotesProvider";
+import { useTags } from "@/providers/TagsProvider";
 import type { Tag, Note } from "@/types";
 
 interface NoteModalProps {
@@ -22,6 +23,7 @@ export default function NoteModal({
   formatDate,
 }: NoteModalProps) {
   const { updateNote } = useNotes();
+  const { tags } = useTags();
   const [currentNote, setCurrentNote] = useState<Note>(note);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(note.title);
@@ -231,24 +233,99 @@ export default function NoteModal({
                 />
               </div>
 
-              {/* Priority Dropdown */}
+              {/* Priority Buttons */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Öncelik
                 </label>
-                <select
-                  value={editedPriority}
-                  onChange={(e) =>
-                    setEditedPriority(
-                      e.target.value as "Low" | "Medium" | "High"
-                    )
-                  }
-                  className="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                >
-                  <option value="Low">Düşük</option>
-                  <option value="Medium">Orta</option>
-                  <option value="High">Yüksek</option>
-                </select>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditedPriority("Low")}
+                    className={`flex flex-col items-center justify-center px-3 py-3 sm:py-4 rounded-lg border-2 transition-all transform hover:scale-105 active:scale-95 ${
+                      editedPriority === "Low"
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/30 shadow-md"
+                        : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-green-300 dark:hover:border-green-700"
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-1 sm:mb-2 text-2xl sm:text-3xl font-bold ${
+                        editedPriority === "Low"
+                          ? "bg-green-500 text-white"
+                          : "bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"
+                      }`}
+                    >
+                      −
+                    </div>
+                    <span
+                      className={`text-xs sm:text-sm font-semibold ${
+                        editedPriority === "Low"
+                          ? "text-green-700 dark:text-green-300"
+                          : "text-gray-600 dark:text-gray-400"
+                      }`}
+                    >
+                      Düşük
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditedPriority("Medium")}
+                    className={`flex flex-col items-center justify-center px-3 py-3 sm:py-4 rounded-lg border-2 transition-all transform hover:scale-105 active:scale-95 ${
+                      editedPriority === "Medium"
+                        ? "border-amber-500 bg-amber-50 dark:bg-amber-900/30 shadow-md"
+                        : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-amber-300 dark:hover:border-amber-700"
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-1 sm:mb-2 text-xl sm:text-2xl font-bold ${
+                        editedPriority === "Medium"
+                          ? "bg-amber-500 text-white"
+                          : "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400"
+                      }`}
+                    >
+                      =
+                    </div>
+                    <span
+                      className={`text-xs sm:text-sm font-semibold ${
+                        editedPriority === "Medium"
+                          ? "text-amber-700 dark:text-amber-300"
+                          : "text-gray-600 dark:text-gray-400"
+                      }`}
+                    >
+                      Orta
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditedPriority("High")}
+                    className={`flex flex-col items-center justify-center px-3 py-3 sm:py-4 rounded-lg border-2 transition-all transform hover:scale-105 active:scale-95 ${
+                      editedPriority === "High"
+                        ? "border-red-500 bg-red-50 dark:bg-red-900/30 shadow-md"
+                        : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-red-300 dark:hover:border-red-700"
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-1 sm:mb-2 text-2xl sm:text-3xl font-bold ${
+                        editedPriority === "High"
+                          ? "bg-red-500 text-white"
+                          : "bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      !
+                    </div>
+                    <span
+                      className={`text-xs sm:text-sm font-semibold ${
+                        editedPriority === "High"
+                          ? "text-red-700 dark:text-red-300"
+                          : "text-gray-600 dark:text-gray-400"
+                      }`}
+                    >
+                      Yüksek
+                    </span>
+                  </button>
+                </div>
               </div>
 
               {/* Tags Input */}
@@ -276,6 +353,52 @@ export default function NoteModal({
                     ))}
                   </div>
                 )}
+
+                {/* Mevcut Etiketlerden Seç */}
+                {tags.length > 0 && (
+                  <div className="mb-3 space-y-2">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
+                      <LocalOfferIcon fontSize="small" className="w-3 h-3" />
+                      Mevcut etiketlerden seçin:
+                    </p>
+                    <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
+                      {tags.map((tag) => {
+                        const isSelected = editedTags.includes(tag.name);
+                        return (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                handleRemoveTag(tag.name);
+                              } else {
+                                setEditedTags([...editedTags, tag.name]);
+                              }
+                            }}
+                            className={`group relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all transform hover:scale-105 active:scale-95 ${
+                              isSelected
+                                ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30"
+                                : "bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-zinc-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            }`}
+                          >
+                            <span className="flex items-center gap-1">
+                              {isSelected && <CloseIcon className="w-3 h-3" />}
+                              {tag.name}
+                            </span>
+                            {isSelected && (
+                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-[10px]">
+                                  ✓
+                                </span>
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Yeni etiket input */}
                 <div className="relative">
                   <input
@@ -285,7 +408,7 @@ export default function NoteModal({
                     onKeyDown={handleTagInputKeyDown}
                     onBlur={handleAddTag}
                     className="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                    placeholder="Etiket yazın ve Enter'a basın..."
+                    placeholder="Yeni etiket yazın ve Enter'a basın..."
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
                     Enter veya virgül

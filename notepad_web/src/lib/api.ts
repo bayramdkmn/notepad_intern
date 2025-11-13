@@ -1,5 +1,5 @@
 //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 import type {
   LoginRequest,
@@ -318,33 +318,33 @@ class ApiClient {
     });
   }
 
-  async updateTag(id: number, name: string): Promise<any> {
-    return this.request<any>(`/tags/tag/update-tag/${id}`, {
+  async updateTag(tag_id: number, name: string): Promise<any> {
+    return this.request<any>(`/tags/tag/update-tag/${tag_id}`, {
       method: "PUT",
       body: JSON.stringify({ name }),
     });
   }
 
-  async deleteTag(id: number): Promise<void> {
-    return this.request<void>(`/tags/tag/delete/${id}`, {
+  async deleteTag(tag_id: number): Promise<void> {
+    return this.request<void>(`/tags/tag/delete/${tag_id}`, {
       method: "DELETE",
     });
   }
 
-  async addTagToNote(noteId: number, tagId: number): Promise<any> {
-    return this.request<any>(`/notes/notes/${noteId}/tags/${tagId}`, {
+  async addTagToNote(note_id: number, tag_id: number): Promise<any> {
+    return this.request<any>(`/notes/notes/${note_id}/tags/${tag_id}`, {
       method: "POST",
     });
   }
 
-  async addTagToNoteByName(noteId: number, tagName: string): Promise<any> {
+  async addTagToNoteByName(note_id: number, tag_name: string): Promise<any> {
     const tags = await this.getTags();
-    let tag = tags.find((t: any) => t.name === tagName);
+    let tag = tags.find((t: any) => t.name === tag_name);
     
     if (!tag) {
-      tag = await this.createTag(tagName);
+      tag = await this.createTag(tag_name);
     }
-    return this.addTagToNote(noteId, tag.id);
+    return this.addTagToNote(note_id, tag.id);
   }
 }
 

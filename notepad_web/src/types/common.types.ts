@@ -41,6 +41,6 @@ export interface FiltersBarProps {
 
 export interface ModalState {
   isOpen: boolean;
-  noteId: number | null;
+  note_id: number | null;
 }
 

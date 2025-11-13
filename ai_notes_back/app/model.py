@@ -54,7 +54,7 @@ class Tag(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer,ForeignKey('users.id',ondelete="CASCADE"),nullable=True)
-    name = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)  
     is_global = Column(Boolean,default=False)
     notes = relationship("Notes", secondary="note_tags", back_populates="tags")
     user = relationship("Users", backref="tags")

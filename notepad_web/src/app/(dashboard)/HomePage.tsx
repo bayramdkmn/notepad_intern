@@ -13,12 +13,10 @@ export default function HomePage({ initialNotes }: HomePageProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (query: string) => {
-    console.log("handleSearch called with:", query);
     setSearchQuery(query);
   };
 
   const handleClearSearch = () => {
-    console.log("handleClearSearch called");
     setSearchQuery("");
   };
 

@@ -27,9 +27,10 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
     createTag,
     updateTag,
     deleteTag,
+    refreshTags,
     isLoading: tagsLoading,
   } = useTags();
-  const { notes, deleteNote } = useNotes();
+  const { notes, deleteNote, refreshNotes } = useNotes();
 
   const [newTagName, setNewTagName] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -83,6 +84,8 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
       await updateTag(id, editingName.trim());
       setEditingId(null);
       setEditingName("");
+      // Notları refresh et - tag isim değişikliklerini görmek için
+      await refreshNotes();
     } catch (error) {
       console.error("Failed to update tag:", error);
       alert("Etiket güncellenemedi");
@@ -98,6 +101,8 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
       if (notesWithTag.length === 0) {
         if (confirm("Bu etiketi silmek istediğinizden emin misiniz?")) {
           await deleteTag(tag.id);
+
+          await refreshTags();
         }
         return;
       }
@@ -224,6 +229,15 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
         }
       }
 
+      // Yeni tagları yükle
+      if (
+        singleTagNotes.some(
+          (note) => !notesToDelete.has(note.id) && replacementTags.get(note.id)
+        )
+      ) {
+        await refreshTags();
+      }
+
       setProgressSteps((prev) =>
         prev.map((step, idx) =>
           idx === currentStepIndex ? { ...step, status: "processing" } : step
@@ -239,6 +253,7 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
       );
       currentStepIndex++;
 
+      // Not silme adımlarını sadece UI'da göster, backend zaten halledecek
       for (const note of singleTagNotes) {
         const shouldDeleteNote = notesToDelete.has(note.id);
         if (shouldDeleteNote) {
@@ -250,26 +265,13 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
             )
           );
 
-          try {
-            await deleteNote(note.id);
-            setProgressSteps((prev) =>
-              prev.map((step, idx) =>
-                idx === currentStepIndex ? { ...step, status: "done" } : step
-              )
-            );
-          } catch (err) {
-            setProgressSteps((prev) =>
-              prev.map((step, idx) =>
-                idx === currentStepIndex
-                  ? {
-                      ...step,
-                      status: "error",
-                      message: step.message + " ❌ Başarısız",
-                    }
-                  : step
-              )
-            );
-          }
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          setProgressSteps((prev) =>
+            prev.map((step, idx) =>
+              idx === currentStepIndex ? { ...step, status: "done" } : step
+            )
+          );
           currentStepIndex++;
         }
       }
@@ -296,6 +298,9 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
 
       setProgressModalOpen(false);
       closeDeleteModal();
+
+      // Hem notları hem etiketleri refresh et - tüm değişiklikleri görmek için
+      await Promise.all([refreshNotes(), refreshTags()]);
 
       setSuccessMessage(finalSuccessMessage);
       setSuccessModalOpen(true);
@@ -327,26 +332,26 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
     setNotesToDelete(new Set());
   };
 
-  const updateReplacementTag = (noteId: number, tagName: string) => {
+  const updateReplacementTag = (note_id: number, tagName: string) => {
     const newMap = new Map(replacementTags);
-    newMap.set(noteId, tagName);
+    newMap.set(note_id, tagName);
     setReplacementTags(newMap);
 
     if (tagName.trim()) {
       const newSet = new Set(notesToDelete);
-      newSet.delete(noteId);
+      newSet.delete(note_id);
       setNotesToDelete(newSet);
     }
   };
 
-  const toggleDeleteNote = (noteId: number) => {
+  const toggleDeleteNote = (note_id: number) => {
     const newSet = new Set(notesToDelete);
-    if (newSet.has(noteId)) {
-      newSet.delete(noteId);
+    if (newSet.has(note_id)) {
+      newSet.delete(note_id);
     } else {
-      newSet.add(noteId);
+      newSet.add(note_id);
       const newMap = new Map(replacementTags);
-      newMap.delete(noteId);
+      newMap.delete(note_id);
       setReplacementTags(newMap);
     }
     setNotesToDelete(newSet);
@@ -678,6 +683,60 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
                                 className="flex-1 px-3 py-2 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
                             </div>
+
+                            {/* Mevcut Etiketler */}
+                            {tags.filter((t) => t.id !== tagToDelete.id)
+                              .length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
+                                  <LocalOfferIcon
+                                    fontSize="small"
+                                    className="w-3 h-3"
+                                  />
+                                  Veya mevcut etiketlerden seçin:
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {tags
+                                    .filter((t) => t.id !== tagToDelete.id)
+                                    .map((tag) => {
+                                      const isSelected =
+                                        replacementTags.get(note.id) ===
+                                        tag.name;
+                                      return (
+                                        <button
+                                          key={tag.id}
+                                          onClick={() =>
+                                            updateReplacementTag(
+                                              note.id,
+                                              isSelected ? "" : tag.name
+                                            )
+                                          }
+                                          className={`group relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all transform hover:scale-105 active:scale-95 ${
+                                            isSelected
+                                              ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30"
+                                              : "bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-zinc-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                          }`}
+                                        >
+                                          <span className="flex items-center gap-1">
+                                            {isSelected && (
+                                              <CloseIcon className="w-3 h-3" />
+                                            )}
+                                            {tag.name}
+                                          </span>
+                                          {isSelected && (
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                              <span className="text-white text-xs">
+                                                ✓
+                                              </span>
+                                            </span>
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                </div>
+                              </div>
+                            )}
+
                             {!replacementTags.get(note.id) && (
                               <p className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1">
                                 <InfoIcon

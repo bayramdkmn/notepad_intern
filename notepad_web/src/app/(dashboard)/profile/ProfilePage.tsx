@@ -28,7 +28,6 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const user = !isLoading && contextUser ? contextUser : initialUser;
-
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -42,8 +41,8 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name?.split(" ")[0] || "",
-        surname: user.name?.split(" ").slice(1).join(" ") || "",
+        name: user.name || "",
+        surname: user.surname || "",
         email: user.email || "",
         phone: user.phone_number || "",
         currentPassword: "",
@@ -144,8 +143,8 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name?.split(" ")[0] || "",
-      surname: user?.name?.split(" ").slice(1).join(" ") || "",
+      name: user?.name || "",
+      surname: user?.surname || "",
       email: user?.email || "",
       phone: user?.phone_number || "",
       currentPassword: "",
@@ -180,16 +179,13 @@ export default function ProfilePage({ initialUser }: ProfilePageProps) {
           ) : (
             <>
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-3xl">
-                {user.name
-                  .split(" ")
-                  .map((n: string) => n.charAt(0))
-                  .join("")
+                {((user.name || "").charAt(0) + (user.surname || "").charAt(0))
                   .toUpperCase()
-                  .slice(0, 2)}
+                  .slice(0, 2) || "U"}
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {user.name}
+                  {user.name} {user.surname}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
               </div>

@@ -208,12 +208,12 @@ export default function NotesGrid({
     setSelectedNoteIds(new Set());
   };
 
-  const toggleNoteSelection = (noteId: number) => {
+  const toggleNoteSelection = (note_id: number) => {
     const newSelection = new Set(selectedNoteIds);
-    if (newSelection.has(noteId)) {
-      newSelection.delete(noteId);
+    if (newSelection.has(note_id)) {
+      newSelection.delete(note_id);
     } else {
-      newSelection.add(noteId);
+      newSelection.add(note_id);
     }
     setSelectedNoteIds(newSelection);
   };

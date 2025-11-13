@@ -23,7 +23,7 @@ interface NewNotePageProps {
 
 export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
   const router = useRouter();
-  const { createNote } = useNotes();
+  const { createNote, notes } = useNotes();
   const { tags: contextTags, createTag, isLoading: tagsLoading } = useTags();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -39,6 +39,7 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
 
   // Validation states
   const [showErrors, setShowErrors] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(false);
 
   // Use context tags if available, otherwise use initialTags
   const availableTags = contextTags.length > 0 ? contextTags : initialTags;
@@ -57,11 +58,11 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
     }
   };
 
-  const toggleTag = (tagName: string) => {
-    if (selectedTags.includes(tagName)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tagName));
+  const toggleTag = (tag_name: string) => {
+    if (selectedTags.includes(tag_name)) {
+      setSelectedTags(selectedTags.filter((t) => t !== tag_name));
     } else {
-      setSelectedTags([...selectedTags, tagName]);
+      setSelectedTags([...selectedTags, tag_name]);
     }
   };
 
@@ -71,8 +72,24 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
       return;
     }
 
+    // Aynı başlıkta not var mı kontrol et
+    const duplicateNote = notes.find(
+      (note) => note.title.toLowerCase() === title.trim().toLowerCase()
+    );
+
+    if (duplicateNote) {
+      const confirmSave = confirm(
+        `"${title.trim()}" başlıklı bir not zaten var. Yine de kaydetmek istiyor musunuz?`
+      );
+      if (!confirmSave) {
+        setDuplicateWarning(true);
+        return;
+      }
+    }
+
     try {
       setIsSaving(true);
+      setDuplicateWarning(false);
       await createNote({
         title: title.trim(),
         content: content.trim(),
@@ -137,11 +154,14 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
+                setDuplicateWarning(false);
               }}
               placeholder="Başlık..."
               className={`w-full text-xl sm:text-2xl lg:text-3xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400 ${
                 showErrors && !title.trim()
                   ? "ring-2 ring-red-500 rounded-lg px-2 py-1"
+                  : duplicateWarning
+                  ? "ring-2 ring-amber-500 rounded-lg px-2 py-1"
                   : ""
               }`}
               autoFocus
@@ -152,6 +172,23 @@ export default function NewNotePage({ initialTags = [] }: NewNotePageProps) {
                 Başlık zorunludur
               </p>
             )}
+            {duplicateWarning && (
+              <p className="text-amber-600 dark:text-amber-400 text-sm mt-2 flex items-center gap-1 animate-slide-in-top">
+                <span className="text-lg">⚠️</span>
+                Bu başlıkta bir not zaten mevcut
+              </p>
+            )}
+            {title.trim() &&
+              !duplicateWarning &&
+              notes.some(
+                (note) =>
+                  note.title.toLowerCase() === title.trim().toLowerCase()
+              ) && (
+                <p className="text-amber-600 dark:text-amber-400 text-sm mt-2 flex items-center gap-1 animate-slide-in-top">
+                  <span className="text-lg">💡</span>
+                  Bu başlıkta bir not zaten var
+                </p>
+              )}
           </div>
 
           {/* Tags Section */}

@@ -58,8 +58,12 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Use context tags if available, otherwise use initialTags
-  const tags = contextTags.length > 0 ? contextTags : initialTags;
+  // Always prioritize context tags from provider
+  // Only use initialTags if context hasn't loaded yet (first render on SSR)
+  const tags =
+    contextTags.length === 0 && initialTags.length > 0 && tagsLoading
+      ? initialTags
+      : contextTags;
 
   const handleAddTag = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -684,7 +688,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
                               />
                             </div>
 
-                            {/* Mevcut Etiketler */}
                             {tags.filter((t) => t.id !== tagToDelete.id)
                               .length > 0 && (
                               <div className="space-y-2">

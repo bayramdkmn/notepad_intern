@@ -9,6 +9,14 @@ class Token(BaseModel):
     refresh_token : str
     token_type : str
 
+class SummaryRequest(BaseModel):
+    title: str
+    content : str
+    tags : list[str] = []
+
+class SummaryResponse(BaseModel):
+    summary :str
+
 class UserRequest(BaseModel):
     name : str
     surname :str = Field(...,min_length=2,max_length=20)

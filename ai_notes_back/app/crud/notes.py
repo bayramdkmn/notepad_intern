@@ -2,12 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter,Depends,HTTPException,Query,status,Response,Body
 from ..api.embedding import get_embedding
+from app.api.summary import generate_summary
 
 from ..model import Notes,Tag
 from ..database import get_db, SessionLocal
 from sqlalchemy.orm import Session
 
-from ..schemes import NoteRequest,UpdateNotesRequest,IdsSchema
+from ..schemes import NoteRequest,UpdateNotesRequest,IdsSchema,SummaryRequest,SummaryResponse
 
 from .users import get_current_user
 from datetime import datetime, timezone ,timedelta
@@ -512,4 +513,24 @@ async def get_all_feature_notes(dependency:user_dependency,db:Session=Depends(ge
 
     return notes_list
 
+@router.post("/notes/ai-summary/{note_id}" ,response_model=SummaryResponse)
+async def get_ai_summary(note_id:int,dependency:user_dependency,db:Session=Depends(get_db)):
+    try:
+        note_fields = db.query(Notes).filter(Notes.id.__eq__(note_id),Notes.user_id.__eq__(dependency.get("id"))).first()
+
+        if not note_fields:
+            raise HTTPException(status_code=404,detail="Note not found.")
+
+        tags = [t.name for t in note_fields.tags]
+
+        summary = generate_summary(
+            title=note_fields.title,
+            content=note_fields.content,
+            tags=tags
+        )
+
+        return {"summary":summary}
+
+    except Exception as err:
+        raise HTTPException(status_code=500,detail=str(err))
 

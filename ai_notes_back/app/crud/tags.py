@@ -5,9 +5,11 @@ from fastapi import APIRouter,Depends,HTTPException
 from sqlalchemy.orm import Session
 from.users import get_current_user
 
+from app.api.ai_tags import generate_tags
+
 from ..schemes import TagCreateRequest
 from ..database import get_db
-from ..model import Tag
+from ..model import Tag,Notes
 
 
 router = APIRouter(
@@ -121,6 +123,22 @@ async def add_global_tag_into_table(request:TagCreateRequest,db:Session=Depends(
         "created_at":tag.created_at
     }
 
+@router.post("/tags/generate-ai-tag/{note_id}")
+async def get_ai_tags(note_id:int,dependency:user_dependency,db:Session=Depends(get_db)):
+    try:
+        request = db.query(Notes).filter(Notes.id.__eq__(note_id),Tag.user_id.__eq__(dependency.get("id"))).first()
+        if not request:
+            raise HTTPException(status_code=404,detail="Note not found.")
+        tags = [t.name for t in request.tags]
+
+        generate_ai_tags = generate_tags(
+            title=request.title,
+            content=request.content,
+            tags=tags
+        )
+        return generate_ai_tags
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
 
 @router.get("/tag/search")
 async def search_tags(query: str,dependency:user_dependency,db: Session = Depends(get_db)):

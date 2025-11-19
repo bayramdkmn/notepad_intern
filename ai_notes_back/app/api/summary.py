@@ -1,4 +1,10 @@
 import openai
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def generate_summary(title: str, content: str, tags: list[str]):
     tags_str = ", ".join(tags) if tags else "none"

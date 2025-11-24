@@ -573,9 +573,9 @@ async def get_ai_summary(note_id:int,dependency:user_dependency,db:Session=Depen
         raise HTTPException(status_code=500,detail=str(err))
     
 @router.get("/notes/versions/{note_id}")
-async def get_all_versions(note_id: int, db: Session = Depends(get_db)):
+async def get_all_versions(note_id: int,dependency:user_dependency, db: Session = Depends(get_db)):
     versions = db.query(NoteVersions).filter(
-        NoteVersions.note_id.__eq__(note_id)
+        NoteVersions.note_id.__eq__(note_id),NoteVersions.updated_by.__eq__(dependency.get("id"))
     ).order_by(NoteVersions.version.asc()).all()
 
     if not versions:
@@ -592,5 +592,41 @@ async def get_all_versions(note_id: int, db: Session = Depends(get_db)):
             } for v in versions
         ]
     }
+
+@router.get("/notes/{note_id}/version/{version_id}")
+async def get_version_by_note_id_dependency_with_user_request(note_id:int,version_id:int,dependency:user_dependency,db:Session=Depends(get_db)):
+    version = db.query(NoteVersions).filter(NoteVersions.note_id.__eq__(note_id),NoteVersions.id.__eq__(version_id),NoteVersions.updated_by.__eq__(dependency.get("id"))).first()
+    if not version:
+        raise HTTPException(status_code=404,detail="Version not found!")
+    return {
+        "id":version.id,
+        "title":version.title,
+        "content":version.content,
+        "version":version.version,
+        "created_at":version.created_at
+    }
+
+@router.post("/notes/{note_id}/restore-version/{version_id}")
+async def restore_version_by_note_id_with_user_dependency(note_id:int,version_id:int,dependency:user_dependency,db:Session=Depends(get_db)):
+    try:
+        version = db.query(NoteVersions).filter(NoteVersions.note_id.__eq__(note_id),NoteVersions.id.__eq__(version_id),NoteVersions.updated_by.__eq__(dependency.get("id"))).first()
+        note = db.query(Notes).filter(Notes.id.__eq__(note_id),Notes.user_id.__eq__(dependency.get("id"))).first()
+        if not note:
+            raise HTTPException(status_code=404,detail="Note Not Found!")
+        note.title = version.title
+        note.content = version.content
+        note.created_at = version.created_at
+        db.add(note)
+        db.commit()
+        return {
+            "message":"Note version restored.",
+            "title":note.title,
+            "content":note.content,
+            "tags": [{"id": tag.id, "name": tag.name} for tag in note.tags],
+            "created_at":note.created_at
+        }
+    except Exception as err:
+        raise HTTPException(status_code=400,detail="Someone wrong:"+str(err))
+
 
 

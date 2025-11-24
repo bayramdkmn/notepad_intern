@@ -32,6 +32,7 @@ class Notes(Base):
     feature_date = Column(DateTime(timezone=True),nullable=True)
     priority = Column(SqlEnum(PriorityEnum), nullable=False, default=PriorityEnum.LOW)
     tags = relationship("Tag", secondary="note_tags", back_populates="notes")
+    versions = relationship("NoteVersions", back_populates="note", cascade="all, delete-orphan")
 
 
 class Users(Base):
@@ -90,3 +91,17 @@ class PasswordResetToken(Base):
     created_at = Column(DateTime(timezone=True),default=lambda :datetime.now(timezone.utc))
     expires_at = Column(DateTime(timezone=True), nullable=False)
     used = Column(Boolean, default=False, nullable=False)
+
+class NoteVersions(Base):
+    __tablename__ = "note_versions"
+    id = Column(Integer,autoincrement=True,index=True,primary_key=True)
+    note_id = Column(Integer,ForeignKey("notes.id",ondelete="CASCADE"),nullable=False)
+    version = Column(Integer,index=True,nullable=False)
+    title = Column(String,nullable=False)
+    content = Column(String,nullable=False)
+    updated_by = Column(Integer,ForeignKey("users.id"),nullable=True)
+    created_at = Column(DateTime(timezone=True),default=lambda:datetime.now(timezone.utc))
+    note = relationship("Notes", back_populates="versions")
+    __table_args__ = (
+        UniqueConstraint('note_id', 'version', name='uix_note_version'),
+    )

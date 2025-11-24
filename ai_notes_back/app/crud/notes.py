@@ -4,11 +4,11 @@ from fastapi import APIRouter,Depends,HTTPException,Query,status,Response,Body
 from ..api.embedding import get_embedding
 from app.api.summary import generate_summary
 
-from ..model import Notes,Tag
+from app.model import Notes,Tag,NoteVersions
 from ..database import get_db, SessionLocal
 from sqlalchemy.orm import Session
 
-from ..schemes import NoteRequest,UpdateNotesRequest,IdsSchema,SummaryRequest,SummaryResponse
+from app.schemes import NoteRequest,UpdateNotesRequest,IdsSchema,SummaryResponse
 
 from .users import get_current_user
 from datetime import datetime, timezone ,timedelta
@@ -138,39 +138,75 @@ async def create_note(dependency: user_dependency, note_request: NoteRequest, db
 
 
 @router.patch("/notes/update-note/{note_id}")
-async def update_notes_with_id_by_creator(note_id:int,dependency:user_dependency,update_body:UpdateNotesRequest,db:Session=Depends(get_db)):
-    db_note = db.query(Notes).filter(Notes.id.__eq__(note_id),Notes.user_id.__eq__(dependency.get("id"))).first()
-    if not db_note:
-        raise HTTPException(status_code=404,detail="Note not found")
+async def update_notes_with_id_by_creator(
+    note_id: int,
+    dependency: user_dependency,
+    update_body: UpdateNotesRequest,
+    db: Session = Depends(get_db)
+):
+    # 1) Notu bul
+    db_note = (
+        db.query(Notes)
+        .filter(
+            Notes.id.__eq__(note_id),
+            Notes.user_id.__eq__(dependency.get("id"))
+        )
+        .first()
+    )
 
+    if not db_note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    # 2) Versiyon numarasını bul (not güncellenmeden önce!)
+    latest_version = (
+        db.query(NoteVersions)
+        .filter(NoteVersions.note_id.__eq__(note_id))
+        .order_by(NoteVersions.version.desc())
+        .first()
+    )
+
+    new_version_number = latest_version.version + 1 if latest_version else 1
+
+    # 3) Eski versiyonu kaydet
+    version_entry = NoteVersions(
+        note_id=note_id,
+        version=new_version_number,
+        title=db_note.title,
+        content=db_note.content,
+        updated_by=dependency.get("id")
+    )
+
+    db.add(version_entry)
+    db.commit()
+
+    # 4) Notu güncelle
     db_note.title = update_body.title
     db_note.content = update_body.content
     db_note.priority = update_body.priority
+
+    # 5) Tag güncelleme
     if update_body.tags is not None:
-        # Mevcut tag'leri temizle
         db_note.tags.clear()
-        
-        # Veritabanında var olan tag'leri bul
+
         existing_tags = db.query(Tag).filter(Tag.name.in_(update_body.tags)).all()
         existing_tag_names = {tag.name for tag in existing_tags}
 
-        # Yeni tag'leri oluştur
         new_tags = [
-            Tag(name=tag_name,user_id=dependency.get("id")) for tag_name in update_body.tags
+            Tag(name=tag_name, user_id=dependency.get("id"))
+            for tag_name in update_body.tags
             if tag_name not in existing_tag_names
         ]
 
         if new_tags:
             db.add_all(new_tags)
             db.commit()
-            db.refresh(db_note)
 
-        # Tag'leri ekle (extend yerine atama)
         db_note.tags = existing_tags + new_tags
 
-    db.add(db_note)
     db.commit()
+    db.refresh(db_note)
 
+    # 6) Response
     return {
         "id": db_note.id,
         "title": db_note.title,
@@ -182,8 +218,10 @@ async def update_notes_with_id_by_creator(note_id:int,dependency:user_dependency
         "tags": [{"id": tag.id, "name": tag.name} for tag in db_note.tags],
         "created_at": db_note.created_at,
         "updated_at": db_note.updated_at,
-        "is_active": db_note.is_active
+        "is_active": db_note.is_active,
+        "new_version": new_version_number
     }
+
 
 
 @router.get("/notes/search/")
@@ -533,4 +571,26 @@ async def get_ai_summary(note_id:int,dependency:user_dependency,db:Session=Depen
 
     except Exception as err:
         raise HTTPException(status_code=500,detail=str(err))
+    
+@router.get("/notes/versions/{note_id}")
+async def get_all_versions(note_id: int, db: Session = Depends(get_db)):
+    versions = db.query(NoteVersions).filter(
+        NoteVersions.note_id.__eq__(note_id)
+    ).order_by(NoteVersions.version.asc()).all()
+
+    if not versions:
+        return {"data": []}
+
+    return {
+        "data": [
+            {
+                "id": v.id,
+                "title": v.title,
+                "content": v.content,
+                "version": v.version,
+                "created_at": v.created_at
+            } for v in versions
+        ]
+    }
+
 

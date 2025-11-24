@@ -1,16 +1,16 @@
 import uuid
-from fastapi import APIRouter,HTTPException,Depends,Body,Response,Cookie,Request
-import secrets
+from fastapi import APIRouter,HTTPException,Depends,Body,Response,Cookie
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
-from ..schemes import UserRequest,Token,PasswordResetRequest,UpdateUserRequest,RequestPasswordResetSchema,ResetPasswordSchema,VerifyOTPSchema,ResetPasswordRequestProfile
-from ..model import Users,TokenBlacklist,Token,PasswordResetToken
+from app.core.schemes import UserRequest,Token, UpdateUserRequest,RequestPasswordResetSchema,ResetPasswordSchema, \
+    ResetPasswordRequestProfile
+from app.core.model import Users,TokenBlacklist,Token
 from passlib.context import CryptContext
 from typing import Annotated
 import datetime
 from datetime import timezone,timedelta,datetime
 from jose import jwt,JWTError
-from ..database import get_db
+from app.core.database import get_db
 from fastapi.responses import JSONResponse
 import random
 

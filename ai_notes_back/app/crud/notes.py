@@ -1,16 +1,16 @@
 from typing import Annotated
 
 from fastapi import APIRouter,Depends,HTTPException,Query,status,Response,Body
-from ..api.embedding import get_embedding
+from app.api.embedding import get_embedding
 from app.api.summary import generate_summary
 
-from app.model import Notes,Tag,NoteVersions
-from ..database import get_db, SessionLocal
+from app.core.model import Notes,Tag,NoteVersions
+from app.core.database import get_db, SessionLocal
 from sqlalchemy.orm import Session
 
-from app.schemes import NoteRequest,UpdateNotesRequest,IdsSchema,SummaryResponse
+from app.core.schemes import NoteRequest,UpdateNotesRequest,IdsSchema,SummaryResponse
 
-from .users import get_current_user
+from app.crud.users import get_current_user
 from datetime import datetime, timezone ,timedelta
 
 import numpy as np

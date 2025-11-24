@@ -7,9 +7,9 @@ from.users import get_current_user
 
 from app.api.ai_tags import generate_tags
 
-from ..schemes import TagCreateRequest
-from ..database import get_db
-from ..model import Tag,Notes
+from app.core.schemes import TagCreateRequest
+from app.core.database import get_db
+from app.core.model import Tag,Notes
 
 
 router = APIRouter(

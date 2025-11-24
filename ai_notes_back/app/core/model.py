@@ -3,8 +3,8 @@ from datetime import datetime,timezone
 from sqlalchemy import Enum as SqlEnum
 
 from sqlalchemy.orm import relationship
-from .database import Base
-from .schemes import PriorityEnum
+from app.core.database import Base
+from app.core.schemes import PriorityEnum
 
 note_tags = Table(
     "note_tags",

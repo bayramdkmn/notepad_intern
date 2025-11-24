@@ -2,9 +2,9 @@ from fastapi import FastAPI,Request
 import time
 from app.crud import users
 from app.crud import notes
-from app.model import Base
+from app.core.model import Base
 from app.crud import tags
-from app.database import engine
+from app.core.database import engine
 from app.crud.notes import delete_old_soft_deleted_notes
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi.middleware.cors import CORSMiddleware

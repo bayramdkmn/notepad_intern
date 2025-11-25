@@ -105,12 +105,6 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
                   color={isDark ? "#E2E8F0" : "#334155"}
                 />
               </TouchableOpacity>
-              <View className="flex-row items-center gap-2">
-                <Text className="text-sm text-gray-600 dark:text-gray-400">
-                  {isDark ? "🌙" : "☀️"}
-                </Text>
-                <Switch value={isDark} onValueChange={toggleTheme} />
-              </View>
             </View>
 
             {/* Content */}
@@ -181,4 +175,3 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     </SafeAreaView>
   );
 };
-

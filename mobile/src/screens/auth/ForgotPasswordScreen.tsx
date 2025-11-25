@@ -95,6 +95,9 @@ export const ForgotPasswordScreen = () => {
               </TouchableOpacity>
               <View className="flex-row items-center gap-2">
                 <Text className="text-sm text-gray-600 dark:text-gray-400">
+                  <Text className="text-sm text-gray-600 dark:text-gray-400">
+                    Mevcut Tema:
+                  </Text>
                   {isDark ? "🌙" : "☀️"}
                 </Text>
                 <Switch value={isDark} onValueChange={toggleTheme} />
@@ -102,7 +105,7 @@ export const ForgotPasswordScreen = () => {
             </View>
 
             {/* Content */}
-            <View className="flex-1 pt-6 pb-8">
+            <View className="flex h-3/4 gap-6 items-center justify-center">
               {/* Icon */}
               <View className="flex items-center pb-8">
                 <View className="h-40 w-40 rounded-full bg-blue-500/10 items-center justify-center">
@@ -122,8 +125,8 @@ export const ForgotPasswordScreen = () => {
               </Text>
 
               {/* Email Input */}
-              <View className="w-full">
-                <Text className="pb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <View className="w-full h-auto">
+                <Text className="pb-2 pl-14 text-sm font-medium text-gray-700 dark:text-gray-300">
                   E-posta Adresi
                 </Text>
                 <View className="relative">
@@ -149,11 +152,8 @@ export const ForgotPasswordScreen = () => {
                   />
                 </View>
               </View>
-
-              <View className="flex-1" />
-
               {/* Send Button */}
-              <View className="py-6">
+              <View className="w-full pt-4">
                 <Button
                   title="Kodu Gönder"
                   onPress={handleSendCode}

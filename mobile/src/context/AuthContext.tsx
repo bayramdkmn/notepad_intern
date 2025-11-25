@@ -67,13 +67,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword = async (email: string) => {
     try {
-      setIsLoading(true);
+      // NOTE: don't toggle global `isLoading` here because
+      // AppNavigator shows a global loader when `isLoading` is true,
+      // which unmounts the NavigationContainer and resets stack state.
+      // Handle local loading in screens instead.
       // TODO: API call yapılacak
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 

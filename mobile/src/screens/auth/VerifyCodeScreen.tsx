@@ -57,7 +57,9 @@ export const VerifyCodeScreen: React.FC<VerifyCodeScreenProps> = ({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleCodeChange = (value: string) => {
@@ -122,12 +124,6 @@ export const VerifyCodeScreen: React.FC<VerifyCodeScreenProps> = ({
                   color={isDark ? "#E2E8F0" : "#334155"}
                 />
               </TouchableOpacity>
-              <View className="flex-row items-center gap-2">
-                <Text className="text-sm text-gray-600 dark:text-gray-400">
-                  {isDark ? "🌙" : "☀️"}
-                </Text>
-                <Switch value={isDark} onValueChange={toggleTheme} />
-              </View>
             </View>
 
             {/* Content */}
@@ -239,4 +235,3 @@ export const VerifyCodeScreen: React.FC<VerifyCodeScreenProps> = ({
     </SafeAreaView>
   );
 };
-

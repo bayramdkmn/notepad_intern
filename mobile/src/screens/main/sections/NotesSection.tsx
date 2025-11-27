@@ -1,13 +1,200 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import Fontisto from "@expo/vector-icons/Fontisto";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import OpenSortModal from "../../../components/modals/OpenSortModal";
+import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import FilterSlider from "../../../components/common/FilterSlider";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import DateRangeModal from "../../../components/modals/DateRangeModal";
 
 export const NotesSection = () => {
+  const [isSortModalVisible, setIsSortModalVisible] = useState(false);
+  const [isDateRangeModalVisible, setIsDateRangeModalVisible] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<{
+    startDate?: string;
+    endDate?: string;
+  }>({});
+  const [selectedView, setSelectedView] = useState<string>("list");
+
+  const handleOpenSortModal = () => {
+    setIsSortModalVisible((prev) => !prev);
+  };
+
+  const filterOptions = [
+    {
+      id: "date",
+      label: "Tarihe Göre",
+      icon: "calendar-outline" as keyof typeof Ionicons.glyphMap,
+      iconType: "ionicons" as const,
+    },
+    {
+      id: "tags",
+      label: "İşaretlenmiş Notlar",
+      icon: "star-outline" as keyof typeof Ionicons.glyphMap,
+      iconType: "ionicons" as const,
+    },
+    {
+      id: "favorites",
+      label: "İleri Tarihli Notlar",
+      icon: "arrow-forward-outline" as keyof typeof Ionicons.glyphMap,
+      iconType: "ionicons" as const,
+    },
+    {
+      id: "pastNotes",
+      label: "Geçmiş Tarihli Notlar",
+      icon: "arrow-back-outline" as keyof typeof Ionicons.glyphMap,
+      iconType: "ionicons" as const,
+    },
+  ];
+
+  const handleFilterSelect = (id: string) => {
+    if (id === "date") {
+      if (!selectedFilters.includes(id)) {
+        setSelectedFilters((prev) => [...prev, id]);
+      }
+      setIsDateRangeModalVisible(true);
+    } else {
+      setSelectedFilters((prev) => {
+        if (prev.includes(id)) {
+          return prev.filter((filterId) => filterId !== id);
+        } else {
+          return [...prev, id];
+        }
+      });
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSelectedFilters([]);
+    setDateRange({});
+    setIsDateRangeModalVisible(false);
+  };
+
+  const handleDateRangeSubmit = (range: {
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    setDateRange(range);
+    if (
+      (range.startDate || range.endDate) &&
+      !selectedFilters.includes("date")
+    ) {
+      setSelectedFilters((prev) => [...prev, "date"]);
+    }
+    if (!range.startDate && !range.endDate) {
+      setSelectedFilters((prev) => prev.filter((id) => id !== "date"));
+    }
+    console.log("Date range selected:", range);
+  };
+
   return (
-    <View className="px-6 mt-8">
-      <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-        Son Notlar
-      </Text>
-      <View className="space-y-3">
+    <View className="px-6 mt-8 gap-4">
+      <View className="relative">
+        <TextInput
+          placeholder="Ara"
+          className="border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-gray-800 pl-10"
+        />
+        <Fontisto
+          name="search"
+          size={20}
+          color="gray"
+          style={{
+            position: "absolute",
+            left: 12,
+            top: "50%",
+            marginTop: -10,
+            zIndex: 1,
+          }}
+        />
+      </View>
+
+      {/* Filter Slider */}
+      <FilterSlider
+        options={filterOptions}
+        selectedIds={selectedFilters}
+        onSelect={handleFilterSelect}
+        onClear={handleClearFilters}
+      />
+
+      <View className="flex-row items-center px-2 pr-4 justify-between gap-2">
+        <View className="flex-row gap-2">
+          {/*Sort Buttons*/}
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={handleOpenSortModal}
+              className="bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white flex-row items-center gap-2"
+            >
+              <MaterialCommunityIcons
+                name="sort-ascending"
+                size={20}
+                color="gray"
+              />
+              <Text className="text-gray-900 dark:text-white text-base font-medium">
+                Sırala
+              </Text>
+            </TouchableOpacity>
+            <OpenSortModal
+              visible={isSortModalVisible}
+              onClose={handleOpenSortModal}
+            />
+          </View>
+        </View>
+        <View className="flex-row gap-3 items-center border border-gray-200 dark:border-gray-700 rounded-xl py-2 px-3 bg-gray-50 dark:bg-gray-800">
+          <TouchableOpacity
+            onPress={() => setSelectedView("list")}
+            className={`px-3 py-2 rounded-lg ${
+              selectedView === "list"
+                ? "bg-gray-200 dark:bg-gray-700 shadow-inner"
+                : "bg-transparent"
+            }`}
+            style={
+              selectedView === "list"
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  }
+                : {}
+            }
+          >
+            <SimpleLineIcons
+              name="list"
+              size={24}
+              color={selectedView === "list" ? "#374151" : "gray"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedView("grid")}
+            className={`px-3 py-2 rounded-lg ${
+              selectedView === "grid"
+                ? "bg-gray-200 dark:bg-gray-700 shadow-inner"
+                : "bg-transparent"
+            }`}
+            style={
+              selectedView === "grid"
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  }
+                : {}
+            }
+          >
+            <SimpleLineIcons
+              name="grid"
+              size={22}
+              color={selectedView === "grid" ? "#374151" : "gray"}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View className="space-y-3 gap-3">
         {[1, 2, 3].map((item) => (
           <TouchableOpacity
             key={item}
@@ -38,6 +225,13 @@ export const NotesSection = () => {
           </TouchableOpacity>
         ))}
       </View>
+      <DateRangeModal
+        visible={isDateRangeModalVisible}
+        onClose={() => setIsDateRangeModalVisible(false)}
+        onSubmit={handleDateRangeSubmit}
+        initialStartDate={dateRange.startDate}
+        initialEndDate={dateRange.endDate}
+      />
     </View>
   );
 };

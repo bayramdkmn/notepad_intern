@@ -118,12 +118,16 @@ export const HomeScreen = () => {
             {translateScreen(activeScreen)}
           </Text>
         </View>
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingBottom: 32 }}
-        >
-          {renderActiveContent()}
-        </ScrollView>
+        {activeScreen === "Tags" ? (
+          renderActiveContent()
+        ) : (
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ paddingBottom: 32 }}
+          >
+            {renderActiveContent()}
+          </ScrollView>
+        )}
         <Animated.View
           pointerEvents={isSidebarOpen ? "auto" : "none"}
           style={[

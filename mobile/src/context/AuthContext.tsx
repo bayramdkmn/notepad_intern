@@ -4,6 +4,7 @@ import { User } from "../types";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isUserLogin: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -11,6 +12,8 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const DEV_AUTO_LOGIN = true;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -80,7 +83,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, register, logout, resetPassword }}
+      value={{
+        user,
+        isLoading,
+        isUserLogin: DEV_AUTO_LOGIN,
+        login,
+        register,
+        logout,
+        resetPassword,
+      }}
     >
       {children}
     </AuthContext.Provider>

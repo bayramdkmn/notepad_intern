@@ -1,24 +1,54 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Animated,
+  StyleSheet,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { Button } from "../../components/common/Button";
 import { useColorScheme } from "nativewind";
+import { Sidebar, SidebarScreen } from "../../components/sidebar/Sidebar";
+import { NotesSection } from "./sections/NotesSection";
+import { TagsSection } from "./sections/TagsSection";
+import { SettingsSection } from "./sections/SettingsSection";
+import { ProfileSection } from "./sections/ProfileSection";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+
+const SIDEBAR_WIDTH = 300;
+type ScreenKey = SidebarScreen;
 
 export const HomeScreen = () => {
   const { user, logout, isLoading } = useAuth();
   const { colorScheme, setColorScheme } = useColorScheme();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [activeScreen, setActiveScreen] = useState<ScreenKey>("Notes");
+  const sidebarAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
+  const overlayAnim = useRef(new Animated.Value(0)).current;
 
   const toggleTheme = () => {
     setColorScheme(colorScheme === "light" ? "dark" : "light");
   };
 
   const isDark = colorScheme === "dark";
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(sidebarAnim, {
+        toValue: isSidebarOpen ? 0 : -SIDEBAR_WIDTH,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.timing(overlayAnim, {
+        toValue: isSidebarOpen ? 1 : 0,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isSidebarOpen, overlayAnim, sidebarAnim]);
 
   const handleLogout = async () => {
     try {
@@ -28,148 +58,128 @@ export const HomeScreen = () => {
     }
   };
 
+  const handleSelectScreen = (screen: ScreenKey) => {
+    setActiveScreen(screen);
+    setSidebarOpen(false);
+  };
+
+  const translateScreen = (screen: ScreenKey) => {
+    switch (screen) {
+      case "Notes":
+        return "Notlar";
+      case "Tags":
+        return "Etiketler";
+      case "Settings":
+        return "Ayarlar";
+      case "Profile":
+        return "Profil";
+      default:
+        return "Notlar";
+    }
+  };
+
+  const renderActiveContent = () => {
+    switch (activeScreen) {
+      case "Tags":
+        return <TagsSection />;
+      case "Settings":
+        return <SettingsSection isDark={isDark} onToggleTheme={toggleTheme} />;
+      case "Profile":
+        return (
+          <ProfileSection
+            user={user}
+            onLogout={handleLogout}
+            loading={isLoading}
+          />
+        );
+      default:
+        return <NotesSection />;
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 32 }}
-      >
-        {/* Header */}
-        <View className="px-6 pt-8 pb-6 border-b border-gray-200 dark:border-gray-800">
-          <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Hoş Geldin! 👋
-          </Text>
-          <Text className="text-base text-gray-600 dark:text-gray-400">
-            {user?.name || user?.email}
-          </Text>
-        </View>
-
-        {/* Theme Toggle Card */}
-        <View className="px-6 mt-6">
-          <View className="rounded-3xl p-6 bg-gray-50 dark:bg-gray-800 shadow-sm">
-            <View className="items-center mb-4">
-              <Text className="text-6xl mb-3">{isDark ? "🌙" : "☀️"}</Text>
-              <Text className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
-                {isDark ? "Karanlık Mod" : "Aydınlık Mod"}
-              </Text>
-              <Text className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                Şu anda {isDark ? "karanlık" : "aydınlık"} tema aktif
-              </Text>
-            </View>
-            <Button
-              title={
-                isDark ? "☀️ Aydınlık Moda Geç" : "🌙 Karanlık Moda Geç"
-              }
-              onPress={toggleTheme}
-              variant="primary"
-              fullWidth
+      <View className="flex-1">
+        <View className="flex-row items-center  px-6 py-4 border-b border-gray-100 dark:border-gray-400">
+          <TouchableOpacity
+            onPress={() => setSidebarOpen((prev) => !prev)}
+            className={`w-11 h-11 rounded-full ${
+              isDark ? "bg-gray-700" : "bg-gray-200"
+            } items-center justify-center active:bg-gray-200 dark:active:bg-gray-700`}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="menu"
+              size={24}
+              color={isDark ? "white" : "black"}
             />
-          </View>
-        </View>
-
-        {/* Quick Stats */}
-        <View className="px-6 mt-8">
-          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            İstatistikler
+          </TouchableOpacity>
+          <Text className="text-lg font-bold absolute left-1/2 -translate-x-1/5 text-gray-900 dark:text-white">
+            {translateScreen(activeScreen)}
           </Text>
-          <View className="flex-row flex-wrap -mx-2">
-            <View className="w-1/2 px-2 mb-4">
-              <View className="bg-blue-50 dark:bg-blue-900/30 rounded-2xl p-4">
-                <Text className="text-3xl mb-2">📝</Text>
-                <Text className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                  12
-                </Text>
-                <Text className="text-sm text-gray-600 dark:text-gray-400">
-                  Toplam Not
-                </Text>
-              </View>
-            </View>
-            <View className="w-1/2 px-2 mb-4">
-              <View className="bg-purple-50 dark:bg-purple-900/30 rounded-2xl p-4">
-                <Text className="text-3xl mb-2">🏷️</Text>
-                <Text className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-                  8
-                </Text>
-                <Text className="text-sm text-gray-600 dark:text-gray-400">
-                  Etiket
-                </Text>
-              </View>
-            </View>
-            <View className="w-1/2 px-2 mb-4">
-              <View className="bg-green-50 dark:bg-green-900/30 rounded-2xl p-4">
-                <Text className="text-3xl mb-2">✅</Text>
-                <Text className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
-                  45
-                </Text>
-                <Text className="text-sm text-gray-600 dark:text-gray-400">
-                  Tamamlanan
-                </Text>
-              </View>
-            </View>
-            <View className="w-1/2 px-2 mb-4">
-              <View className="bg-orange-50 dark:bg-orange-900/30 rounded-2xl p-4">
-                <Text className="text-3xl mb-2">⏰</Text>
-                <Text className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
-                  3
-                </Text>
-                <Text className="text-sm text-gray-600 dark:text-gray-400">
-                  Bekleyen
-                </Text>
-              </View>
-            </View>
-          </View>
         </View>
-
-        {/* Recent Notes */}
-        <View className="px-6 mt-8">
-          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            Son Notlar
-          </Text>
-          <View className="space-y-3">
-            {[1, 2, 3].map((item) => (
-              <TouchableOpacity
-                key={item}
-                activeOpacity={0.7}
-                className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700"
-              >
-                <Text className="text-base font-semibold text-gray-900 dark:text-white mb-1">
-                  Not Başlığı {item}
-                </Text>
-                <Text
-                  className="text-sm text-gray-600 dark:text-gray-400"
-                  numberOfLines={2}
-                >
-                  Bu bir örnek not içeriğidir. Burada notun özeti görünecek...
-                </Text>
-                <View className="flex-row mt-3">
-                  <View className="bg-blue-100 dark:bg-blue-900/40 px-3 py-1 rounded-full mr-2">
-                    <Text className="text-xs text-blue-600 dark:text-blue-400">
-                      İş
-                    </Text>
-                  </View>
-                  <View className="bg-purple-100 dark:bg-purple-900/40 px-3 py-1 rounded-full">
-                    <Text className="text-xs text-purple-600 dark:text-purple-400">
-                      Önemli
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Logout Button */}
-        <View className="px-6 mt-8">
-          <Button
-            title="Çıkış Yap"
-            onPress={handleLogout}
-            loading={isLoading}
-            variant="outline"
-            fullWidth
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 32 }}
+        >
+          {renderActiveContent()}
+        </ScrollView>
+        <Animated.View
+          pointerEvents={isSidebarOpen ? "auto" : "none"}
+          style={[
+            styles.overlay,
+            {
+              opacity: overlayAnim,
+            },
+          ]}
+        >
+          <TouchableWithoutFeedback onPress={() => setSidebarOpen(false)}>
+            <View style={styles.overlayTouchable} />
+          </TouchableWithoutFeedback>
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.sidebarContainer,
+            {
+              transform: [{ translateX: sidebarAnim }],
+            },
+          ]}
+        >
+          <Sidebar
+            currentScreen={activeScreen}
+            onSelectScreen={handleSelectScreen}
+            onClose={() => setSidebarOpen(false)}
           />
-        </View>
-      </ScrollView>
+        </Animated.View>
+      </View>
     </SafeAreaView>
   );
 };
 
+const styles = StyleSheet.create({
+  sidebarContainer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: SIDEBAR_WIDTH,
+    zIndex: 20,
+    elevation: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    zIndex: 10,
+  },
+  overlayTouchable: {
+    flex: 1,
+  },
+});

@@ -9,7 +9,7 @@ import { View, ActivityIndicator } from "react-native";
 const Stack = createNativeStackNavigator();
 
 export const AppNavigator = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isUserLogin } = useAuth();
 
   // Loading state
   if (isLoading) {
@@ -23,11 +23,9 @@ export const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
-          // Kullanıcı giriş yapmışsa ana ekranı göster
+        {user || isUserLogin ? (
           <Stack.Screen name="Home" component={HomeScreen} />
         ) : (
-          // Kullanıcı giriş yapmamışsa auth ekranlarını göster
           <Stack.Screen name="Auth" component={AuthStack} />
         )}
       </Stack.Navigator>

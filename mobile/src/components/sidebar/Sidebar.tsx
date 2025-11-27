@@ -1,70 +1,130 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { useAuth } from "../../context/AuthContext";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Feather from "@expo/vector-icons/Feather";
+import { useColorScheme } from "nativewind";
+
+export type SidebarScreen = "Notes" | "Tags" | "Settings" | "Profile";
 
 interface MenuItem {
   id: string;
   title: string;
-  icon: string;
-  screen: string;
+  icon: React.ReactNode;
+  screen: SidebarScreen;
 }
 
-const menuItems: MenuItem[] = [
-  { id: "1", title: "Notlar", icon: "📝", screen: "Notes" },
-  { id: "2", title: "Etiketler", icon: "🏷️", screen: "Tags" },
-  { id: "3", title: "Ayarlar", icon: "⚙️", screen: "Settings" },
-];
+interface SidebarProps {
+  currentScreen: SidebarScreen;
+  onSelectScreen: (screen: SidebarScreen) => void;
+  onClose?: () => void;
+}
 
-export const Sidebar: React.FC<DrawerContentComponentProps> = (props) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  currentScreen,
+  onSelectScreen,
+  onClose,
+}) => {
   const { user, logout } = useAuth();
-  const currentRoute = props.state.routes[props.state.index].name;
-
-  const handleNavigate = (screen: string) => {
-    props.navigation.navigate(screen);
+  const { colorScheme, setColorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const handleNavigate = (screen: SidebarScreen) => {
+    onSelectScreen(screen);
   };
 
   const handleLogout = async () => {
     await logout();
   };
+  const menuItems: MenuItem[] = [
+    {
+      id: "1",
+      title: "Notlar",
+      icon: (
+        <MaterialCommunityIcons
+          name="notebook"
+          size={20}
+          color={isDark ? "white" : "black"}
+        />
+      ),
+      screen: "Notes",
+    },
+    {
+      id: "2",
+      title: "Etiketler",
+      icon: (
+        <FontAwesome6
+          name="tags"
+          size={20}
+          color={isDark ? "white" : "black"}
+        />
+      ),
+      screen: "Tags",
+    },
+    {
+      id: "3",
+      title: "Ayarlar",
+      icon: (
+        <MaterialIcons
+          name="settings"
+          size={20}
+          color={isDark ? "white" : "black"}
+        />
+      ),
+      screen: "Settings",
+    },
+  ];
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={["left"]}>
       <View className="flex-1">
         {/* Header */}
-        <View className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+        <View className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex-row items-center justify-between">
           <Text className="text-2xl font-bold text-gray-900 dark:text-white">
             📝 Notepad AI
           </Text>
+          {onClose && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Menüyü kapat"
+              onPress={onClose}
+              className="w-10 h-10 rounded-full items-center justify-center active:bg-gray-100 dark:active:bg-gray-800"
+            >
+              <Text className="text-xl">✖️</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Menu Items */}
         <ScrollView className="flex-1 py-4">
           {menuItems.map((item) => {
-            const isActive = currentRoute === item.screen;
+            const isActive = currentScreen === item.screen;
             return (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => handleNavigate(item.screen)}
-                activeOpacity={0.7}
-                className={`mx-3 mb-2 px-4 py-3.5 rounded-xl flex-row items-center ${
-                  isActive
-                    ? "bg-blue-50 dark:bg-blue-900/30"
-                    : "bg-transparent active:bg-gray-100 dark:active:bg-gray-800"
-                }`}
-              >
-                <Text className="text-2xl mr-3">{item.icon}</Text>
-                <Text
-                  className={`text-base font-medium ${
+              <View key={item.id} className="mb-2 px-4">
+                <TouchableOpacity
+                  onPress={() => handleNavigate(item.screen)}
+                  activeOpacity={0.7}
+                  className={` mb-2 px-4 py-3 rounded-xl flex-row items-center ${
                     isActive
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-700 dark:text-gray-300"
+                      ? "bg-gray-200 dark:bg-blue-900/30"
+                      : "bg-transparent active:bg-gray-100 dark:active:bg-gray-800"
                   }`}
                 >
-                  {item.title}
-                </Text>
-              </TouchableOpacity>
+                  <Text className="text-2xl mr-3">{item.icon}</Text>
+                  <Text
+                    className={`text-base font-medium ${
+                      isActive
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    {item.title}
+                  </Text>
+                </TouchableOpacity>
+                <View className="border-b border-gray-300 dark:border-gray-500 w-full " />
+              </View>
             );
           })}
         </ScrollView>
@@ -87,18 +147,18 @@ export const Sidebar: React.FC<DrawerContentComponentProps> = (props) => {
         </View>
 
         {/* User Profile */}
-        <View className="px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <View
+          className={`px-6 py-4 border-t border-gray-200 dark:border-gray-800 ${
+            currentScreen === "Profile" ? "bg-gray-100 dark:bg-blue-900/30" : ""
+          }`}
+        >
           <TouchableOpacity
-            onPress={handleLogout}
+            onPress={() => handleNavigate("Profile")}
             activeOpacity={0.7}
             className="flex-row items-center"
           >
-            <View className="w-10 h-10 rounded-full bg-blue-500 dark:bg-blue-600 items-center justify-center mr-3">
-              <Text className="text-white font-semibold text-lg">
-                {user?.name?.charAt(0).toUpperCase() || "U"}
-              </Text>
-            </View>
-            <View className="flex-1">
+            <Feather name="user" size={24} color={isDark ? "white" : "black"} />
+            <View className="flex-1 ml-3">
               <Text className="text-sm font-semibold text-gray-900 dark:text-white">
                 {user?.name || "Kullanıcı"}
               </Text>
@@ -106,7 +166,6 @@ export const Sidebar: React.FC<DrawerContentComponentProps> = (props) => {
                 {user?.email || "user@example.com"}
               </Text>
             </View>
-            <Text className="text-gray-400 dark:text-gray-500 text-lg">🚪</Text>
           </TouchableOpacity>
         </View>
       </View>

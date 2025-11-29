@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  useWindowDimensions,
+  type DimensionValue,
+} from "react-native";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import OpenSortModal from "../../../components/modals/OpenSortModal";
@@ -16,7 +23,11 @@ export const NotesSection = () => {
     startDate?: string;
     endDate?: string;
   }>({});
-  const [selectedView, setSelectedView] = useState<string>("list");
+  const [selectedView, setSelectedView] = useState<"list" | "grid">("list");
+  const { width } = useWindowDimensions();
+  const columnCount = width >= 900 ? 4 : width >= 600 ? 3 : 2;
+  const cardWidth: DimensionValue =
+    selectedView === "list" ? "100%" : `${100 / columnCount - 2}%`;
 
   const handleOpenSortModal = () => {
     setIsSortModalVisible((prev) => !prev);
@@ -147,19 +158,8 @@ export const NotesSection = () => {
             className={`px-3 py-2 rounded-lg ${
               selectedView === "list"
                 ? "bg-gray-200 dark:bg-gray-700 shadow-inner"
-                : "bg-transparent"
+                : ""
             }`}
-            style={
-              selectedView === "list"
-                ? {
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 2,
-                    elevation: 2,
-                  }
-                : {}
-            }
           >
             <SimpleLineIcons
               name="list"
@@ -172,19 +172,8 @@ export const NotesSection = () => {
             className={`px-3 py-2 rounded-lg ${
               selectedView === "grid"
                 ? "bg-gray-200 dark:bg-gray-700 shadow-inner"
-                : "bg-transparent"
+                : ""
             }`}
-            style={
-              selectedView === "grid"
-                ? {
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 2,
-                    elevation: 2,
-                  }
-                : {}
-            }
           >
             <SimpleLineIcons
               name="grid"
@@ -194,12 +183,19 @@ export const NotesSection = () => {
           </TouchableOpacity>
         </View>
       </View>
-      <View className="space-y-3 gap-3">
-        {[1, 2, 3].map((item) => (
+      <View
+        className={`gap-y-3 ${
+          selectedView === "grid"
+            ? "flex-row flex-wrap justify-between"
+            : "space-y-3"
+        }`}
+      >
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
           <TouchableOpacity
             key={item}
             activeOpacity={0.7}
             className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700"
+            style={{ width: cardWidth }}
           >
             <Text className="text-base font-semibold text-gray-900 dark:text-white mb-1">
               Not Başlığı {item}

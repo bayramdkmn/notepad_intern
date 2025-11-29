@@ -9,7 +9,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useAuth } from "../../context/AuthContext";
+import { useAuthStore } from "../../store/authStore";
 import { useColorScheme } from "nativewind";
 import { Sidebar, SidebarScreen } from "../../components/sidebar/Sidebar";
 import { NotesSection } from "./sections/NotesSection";
@@ -22,7 +22,9 @@ const SIDEBAR_WIDTH = 300;
 type ScreenKey = SidebarScreen;
 
 export const HomeScreen = () => {
-  const { user, logout, isLoading } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const isLoading = useAuthStore((state) => state.isLoading);
   const { colorScheme, setColorScheme } = useColorScheme();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeScreen, setActiveScreen] = useState<ScreenKey>("Notes");

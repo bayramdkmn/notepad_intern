@@ -14,7 +14,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../types";
 import { Input } from "../../components/common/Input";
 import { Button } from "../../components/common/Button";
-import { useAuth } from "../../context/AuthContext";
+import { useAuthStore } from "../../store/authStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 
@@ -25,7 +25,7 @@ type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
 
 export const ForgotPasswordScreen = () => {
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
-  const { resetPassword } = useAuth();
+  const resetPassword = useAuthStore((state) => state.resetPassword);
   const { colorScheme, setColorScheme } = useColorScheme();
 
   const [email, setEmail] = useState("");

@@ -15,9 +15,9 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../types";
 import { Input } from "../../components/common/Input";
 import { Button } from "../../components/common/Button";
-import { useAuth } from "../../context/AuthContext";
 import { useColorScheme } from "nativewind";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useAuthStore } from "../../store/authStore";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -26,7 +26,7 @@ type LoginScreenNavigationProp = NativeStackNavigationProp<
 
 export const LoginScreen = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const { login, isLoading } = useAuth();
+  const login = useAuthStore((state) => state.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
@@ -67,9 +67,8 @@ export const LoginScreen = () => {
 
     try {
       await login(email, password);
-      // Navigation otomatik olarak AppNavigator'da yönetilecek
-    } catch (error) {
-      Alert.alert("Hata", "Giriş yapılırken bir hata oluştu");
+    } catch (error: any) {
+      Alert.alert("Hata", error?.message || "Giriş yapılırken bir hata oluştu");
     }
   };
 
@@ -149,7 +148,6 @@ export const LoginScreen = () => {
               <Button
                 title="Giriş Yap"
                 onPress={handleLogin}
-                loading={isLoading}
                 fullWidth
                 className="mt-6"
               />

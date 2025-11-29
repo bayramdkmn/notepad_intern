@@ -75,6 +75,15 @@ user_dependency = Annotated[dict,Depends(get_current_user)]
 
 @router.post("/user/register/")
 async def register(request:UserRequest,db:Session=Depends(get_db)):
+    # Check for existing email or username
+    existing_email = db.query(Users).filter(Users.email.__eq__(request.email)).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    existing_username = db.query(Users).filter(Users.username.__eq__(request.username)).first()
+    if existing_username:
+        raise HTTPException(status_code=400, detail="Username already taken")
+
     user = Users(
         name = request.name,
         surname = request.surname,

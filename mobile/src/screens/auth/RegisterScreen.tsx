@@ -15,8 +15,8 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../types";
 import { Input } from "../../components/common/Input";
 import { Button } from "../../components/common/Button";
-import { useAuth } from "../../context/AuthContext";
 import { useColorScheme } from "nativewind";
+import { useAuthStore } from "../../store/authStore";
 
 type RegisterScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -25,18 +25,23 @@ type RegisterScreenNavigationProp = NativeStackNavigationProp<
 
 export const RegisterScreen = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
-  const { register, isLoading } = useAuth();
+  const register = useAuthStore((state) => state.register);
+  const isLoading = useAuthStore((state) => state.isLoading);
   const { colorScheme, setColorScheme } = useColorScheme();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [surname, setSurname] = useState("");
+  const [username, setUsername] = useState("");
   const [errors, setErrors] = useState({
     name: "",
+    surname: "",
     email: "",
     password: "",
     confirmPassword: "",
+    username: "",
   });
   const isDark = colorScheme === "dark";
 
@@ -47,7 +52,9 @@ export const RegisterScreen = () => {
   const validateForm = () => {
     const newErrors = {
       name: "",
+      surname: "",
       email: "",
+      username: "",
       password: "",
       confirmPassword: "",
     };
@@ -66,6 +73,14 @@ export const RegisterScreen = () => {
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Geçerli bir e-posta adresi girin";
+      isValid = false;
+    }
+
+    if (!username.trim()) {
+      newErrors.username = "Kullanıcı adı gerekli";
+      isValid = false;
+    } else if (username.trim().length < 3) {
+      newErrors.username = "Kullanıcı adı en az 3 karakter olmalı";
       isValid = false;
     }
 
@@ -93,10 +108,21 @@ export const RegisterScreen = () => {
     if (!validateForm()) return;
 
     try {
-      await register(name, email, password);
-      // Navigation otomatik olarak AppNavigator'da yönetilecek
-    } catch (error) {
-      Alert.alert("Hata", "Kayıt olurken bir hata oluştu");
+      await register({
+        email: email.trim(),
+        password_hash: password,
+        name: name.trim(),
+        surname: surname.trim(),
+        username: username.trim(),
+        phone_number: "",
+      });
+      navigation.navigate("Login");
+    } catch (error: any) {
+      const errorMessage = error?.message || "Kayıt olurken bir hata oluştu";
+      Alert.alert("Hata", errorMessage, [
+        { text: "Tamam", onPress: () => console.error(error) },
+      ]);
+      console.error(error);
     }
   };
 
@@ -137,13 +163,35 @@ export const RegisterScreen = () => {
               <View className="space-y-4">
                 <Input
                   label="İsim"
-                  placeholder="Adın Soyadın"
+                  placeholder="Adın"
                   value={name}
                   onChangeText={(text) => {
                     setName(text);
                     setErrors({ ...errors, name: "" });
                   }}
                   error={errors.name}
+                  autoCapitalize="words"
+                />
+                <Input
+                  label="Soyisim"
+                  placeholder="Soyadın"
+                  value={surname}
+                  onChangeText={(text) => {
+                    setSurname(text);
+                    setErrors({ ...errors, surname: "" });
+                  }}
+                  error={errors.surname}
+                  autoCapitalize="words"
+                />
+                <Input
+                  label="Kullanıcı Adı"
+                  placeholder="Kullanıcı adınız"
+                  value={username}
+                  onChangeText={(text) => {
+                    setUsername(text);
+                    setErrors({ ...errors, username: "" });
+                  }}
+                  error={errors.username}
                   autoCapitalize="words"
                 />
 

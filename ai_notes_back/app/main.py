@@ -42,7 +42,6 @@ async def add_process_time_header(request: Request, call_next):
     response = await call_next(request)
     process_time = time.perf_counter() - start_time
     response.headers["X-Process-Time"] = str(round(process_time, 4))
-    print(f"{request.method} {request.url.path} took {process_time:.4f} seconds")
     return response
 
 app.include_router(users.router)

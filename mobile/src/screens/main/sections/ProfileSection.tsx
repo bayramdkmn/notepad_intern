@@ -96,7 +96,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           </View>
           <View className="text-center flex flex-col items-center w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
             <Text className="text-lg font-bold mb-2 text-gray-900 dark:text-white">
-              {user?.name || "Kullanıcı"}
+              {user?.name || "Kullanıcı"} {user?.surname}
             </Text>
             <Text className="text-sm text-gray-500 dark:text-gray-400">
               {user?.email || "E-Posta"}

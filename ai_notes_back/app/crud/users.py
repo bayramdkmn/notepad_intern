@@ -97,7 +97,15 @@ async def register(request:UserRequest,db:Session=Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    return {
+        "id": user.id,
+        "name": user.name,
+        "surname": user.surname,
+        "username": user.username,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "role": user.role
+    }
 
 
 @router.put("/users/reset-password-in-profile")
@@ -154,7 +162,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),db: Session = D
     return {
         "access_token": token,
         "refresh_token": refresh_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "username": user.username,
+            "email": user.email
+        }
     }
 
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
   SafeAreaView,
   Switch,
+  Keyboard,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -35,6 +36,7 @@ export const RegisterScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [surname, setSurname] = useState("");
   const [username, setUsername] = useState("");
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [errors, setErrors] = useState({
     name: "",
     surname: "",
@@ -79,8 +81,8 @@ export const RegisterScreen = () => {
     if (!username.trim()) {
       newErrors.username = "Kullanıcı adı gerekli";
       isValid = false;
-    } else if (username.trim().length < 3) {
-      newErrors.username = "Kullanıcı adı en az 3 karakter olmalı";
+    } else if (username.trim().length < 5) {
+      newErrors.username = "Kullanıcı adı en az 5 karakter olmalı";
       isValid = false;
     }
 
@@ -103,6 +105,20 @@ export const RegisterScreen = () => {
     setErrors(newErrors);
     return isValid;
   };
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardOpen(true)
+    );
+    const hide = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardOpen(false)
+    );
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   const handleRegister = async () => {
     if (!validateForm()) return;
@@ -129,7 +145,7 @@ export const RegisterScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" && keyboardOpen ? "padding" : undefined}
         className="flex-1"
       >
         <ScrollView
@@ -193,6 +209,7 @@ export const RegisterScreen = () => {
                   }}
                   error={errors.username}
                   autoCapitalize="words"
+                  keyboardType="name-phone-pad"
                 />
 
                 <Input

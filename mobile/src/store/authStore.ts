@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import * as api from "../api";
 import { User } from "../types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type RegisterPayload = {
   name: string;
@@ -30,14 +31,27 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true });
       const response = await api.login({ email, password });
-      if(response?.status === 401 || response?.status === 403) {
+      if (response?.status === 401 || response?.status === 403) {
         throw new Error("Geçersiz e-posta adresi veya şifre");
       }
-      
+
+
+      const { access_token, refresh_token, token_type } = response;
+      // Save tokens to AsyncStorage
+      await AsyncStorage.setItem("accessToken", access_token);
+      await AsyncStorage.setItem("refreshToken", refresh_token);
+      await AsyncStorage.setItem("tokenType", token_type);
       set({
         isLoggedIn: true,
-        user: { id: response.data.id, email, name: response.data.name },
+        user: {
+          id: response.user.id,
+          name: response.user.name,
+          surname: response.user.surname,
+          username: response.user.username,
+          email: response.user.email,
+        },
       });
+      
     } finally {
       set({ isLoading: false });
     }
@@ -46,7 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (data: RegisterPayload) => {
     try {
       set({ isLoading: true });
-      await api.register({
+      const response = await api.register({
         email: data.email,
         password: data.password_hash,
         firstName: data.name,
@@ -57,17 +71,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         isLoggedIn: true,
         user: {
-          id: "1",
-          email: data.email,
-          name: `${data.name} ${data.surname}`,
+          id: response.id,
+          name: response.name,
+          surname: response.surname,
+          email: response.email,
         },
       });
+      console.log(response)
     } catch (error: any) {
-      // Backend'den gelen hata mesajını kontrol et
       const errorMessage = error?.message || "";
       const errorString = errorMessage.toLowerCase();
-      
-      // Duplicate email/username kontrolü (400 veya 500 status kodları için)
+
       if (
         (error?.status === 400 || error?.status === 500) &&
         (errorString.includes("already exists") ||
@@ -85,7 +99,6 @@ export const useAuthStore = create<AuthState>((set) => ({
           throw new Error("Bu bilgiler zaten kullanılıyor. Lütfen farklı bilgiler deneyin.");
         }
       }
-      // Diğer hataları olduğu gibi fırlat
       throw error;
     } finally {
       set({ isLoading: false });

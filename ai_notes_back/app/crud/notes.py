@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter,Depends,HTTPException,Query,status,Response,Body
+from fastapi import APIRouter,Depends,HTTPException,Query,status,Response,Body, File, UploadFile
+from fastapi.responses import StreamingResponse
 from app.api.embedding import get_embedding
 from app.api.summary import generate_summary
 
@@ -14,6 +15,12 @@ from app.crud.users import get_current_user
 from datetime import datetime, timezone ,timedelta
 
 import numpy as np
+import io
+import json
+
+# ReportLab used for simple PDF generation
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 
 router = APIRouter(
@@ -628,5 +635,122 @@ async def restore_version_by_note_id_with_user_dependency(note_id:int,version_id
     except Exception as err:
         raise HTTPException(status_code=400,detail="Someone wrong:"+str(err))
 
+@router.get("/notes/export/{note_id}")
+async def export_note(note_id: int,dependency: user_dependency, format: str = Query("md", regex="^(md|pdf)$", description="Export format: md or pdf"), db: Session = Depends(get_db)):
+    note = db.query(Notes).filter(Notes.id.__eq__(note_id), Notes.user_id.__eq__(dependency.get("id"))).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    filename_base = f"note_{note.id}"
+
+    if format == "md":
+        content_bytes = note.content.encode("utf-8")
+        headers = {"Content-Disposition": f"attachment; filename=\"{filename_base}.md\""}
+        return Response(content=content_bytes, media_type="text/markdown", headers=headers)
+
+    # PDF generation using reportlab
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Simple layout: title then content with basic wrapping
+    y = height - 72
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(72, y, note.title)
+    y -= 28
+
+    p.setFont("Helvetica", 11)
+    lines = note.content.splitlines()
+    for line in lines:
+        # wrap long lines
+        max_chars = 95
+        while len(line) > max_chars:
+            p.drawString(72, y, line[:max_chars])
+            line = line[max_chars:]
+            y -= 14
+            if y < 72:
+                p.showPage()
+                y = height - 72
+                p.setFont("Helvetica", 11)
+        p.drawString(72, y, line)
+        y -= 14
+        if y < 72:
+            p.showPage()
+            y = height - 72
+            p.setFont("Helvetica", 11)
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    headers = {"Content-Disposition": f"attachment; filename=\"{filename_base}.pdf\""}
+    return StreamingResponse(buffer, media_type="application/pdf", headers=headers)
 
 
+@router.post("/notes/import/")
+async def import_note(dependency: user_dependency,file: UploadFile = File(...), db: Session = Depends(get_db)):
+    content_bytes = await file.read()
+    filename = file.filename or "imported_note"
+    lower_name = filename.lower()
+
+    try:
+        if lower_name.endswith('.json') or file.content_type == 'application/json':
+            payload = json.loads(content_bytes.decode('utf-8'))
+            title = payload.get('title') or filename
+            content = payload.get('content') or ''
+            tags = payload.get('tags') or []
+        else:
+            # treat as markdown/text
+            text = content_bytes.decode('utf-8')
+            lines = text.splitlines()
+            title = None
+            for ln in lines:
+                ln_strip = ln.strip()
+                if ln_strip.startswith('# '):
+                    title = ln_strip.lstrip('# ').strip()
+                    break
+            if not title:
+                # fallback to filename without extension
+                title = filename.rsplit('.', 1)[0]
+            content = text
+            tags = []
+
+        # create tags if needed
+        note_tags = []
+        for tag_name in tags:
+            tag = db.query(Tag).filter(Tag.name.__eq__(tag_name), Tag.user_id.__eq__(dependency.get("id"))).first()
+            if not tag:
+                tag = Tag(name=tag_name, user_id=dependency.get("id"))
+                db.add(tag)
+                db.commit()
+                db.refresh(tag)
+            note_tags.append(tag)
+
+        embedding_byte = get_embedding(content)
+
+        db_note = Notes(
+            title=title,
+            content=content,
+            tags=note_tags,
+            embedding=embedding_byte,
+            user_id=dependency.get("id")
+        )
+
+        db.add(db_note)
+        db.commit()
+        db.refresh(db_note)
+
+        return {
+            "id": db_note.id,
+            "title": db_note.title,
+            "content": db_note.content,
+            "tags": [{"id": tag.id, "name": tag.name} for tag in db_note.tags],
+            "created_at": db_note.created_at,
+            "updated_at": db_note.updated_at,
+            "is_active": db_note.is_active
+        }
+
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON file")
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=str(err))

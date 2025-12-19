@@ -144,3 +144,60 @@ async def get_ai_tags(note_id:int,dependency:user_dependency,db:Session=Depends(
 async def search_tags(query: str,dependency:user_dependency,db: Session = Depends(get_db)):
     return db.query(Tag).filter(Tag.name.ilike(f"%{query}%"),Tag.user_id.__eq__(dependency.get("id"))).all()
 
+@router.get("/tag/{tag_id}/stats")
+async def get_tag_stats(
+    tag_id: int,
+    dependency: user_dependency,
+    db: Session = Depends(get_db)
+):
+    tag = db.query(Tag).filter(
+        Tag.id.__eq__(tag_id),
+        Tag.user_id.__eq__(dependency.get("id"))
+    ).first()
+
+    if not tag:
+        raise HTTPException(status_code=404, detail="Tag not found")
+
+    notes = [note for note in tag.notes if note.user_id == dependency.get("id")]
+
+    last_used_at = (
+        max((note.updated_at for note in notes), default=None)
+    )
+
+    return {
+        "tag_id": tag.id,
+        "name": tag.name,
+        "notes_count": len(notes),
+        "last_used_at": last_used_at,
+        "created_at": tag.created_at
+    }
+
+@router.get("/tags/most-used")
+async def most_used_tags(
+    dependency: user_dependency,
+    db: Session = Depends(get_db)
+):
+    tags = db.query(Tag).filter(
+        Tag.user_id.__eq__(dependency.get("id"))
+    ).all()
+
+    result = []
+
+    for tag in tags:
+        count = sum(
+            1 for note in tag.notes
+            if note.user_id == dependency.get("id")
+        )
+
+        if count > 0:
+            result.append({
+                "id": tag.id,
+                "name": tag.name,
+                "usage_count": count
+            })
+
+    result.sort(key=lambda x: x["usage_count"], reverse=True)
+
+    return result
+
+

@@ -75,6 +75,15 @@ user_dependency = Annotated[dict,Depends(get_current_user)]
 
 @router.post("/user/register/")
 async def register(request:UserRequest,db:Session=Depends(get_db)):
+    # Check for existing email or username
+    existing_email = db.query(Users).filter(Users.email.__eq__(request.email)).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    existing_username = db.query(Users).filter(Users.username.__eq__(request.username)).first()
+    if existing_username:
+        raise HTTPException(status_code=400, detail="Username already taken")
+
     user = Users(
         name = request.name,
         surname = request.surname,
@@ -88,7 +97,15 @@ async def register(request:UserRequest,db:Session=Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    return {
+        "id": user.id,
+        "name": user.name,
+        "surname": user.surname,
+        "username": user.username,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "role": user.role
+    }
 
 
 @router.put("/users/reset-password-in-profile")
@@ -145,7 +162,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),db: Session = D
     return {
         "access_token": token,
         "refresh_token": refresh_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "username": user.username,
+            "email": user.email
+        }
     }
 
 

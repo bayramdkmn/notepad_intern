@@ -195,7 +195,10 @@ async def update_notes_with_id_by_creator(
     if update_body.tags is not None:
         db_note.tags.clear()
 
-        existing_tags = db.query(Tag).filter(Tag.name.in_(update_body.tags)).all()
+        existing_tags = db.query(Tag).filter(
+            Tag.name.in_(update_body.tags),
+            Tag.user_id.__eq__(dependency.get("id"))
+        ).all()
         existing_tag_names = {tag.name for tag in existing_tags}
 
         new_tags = [

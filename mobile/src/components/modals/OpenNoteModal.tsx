@@ -35,7 +35,6 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
   const [content, setContent] = React.useState(note?.content || "");
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isAddTagModalVisible, setIsAddTagModalVisible] = React.useState(false);
-  const [deleteNote, setDeleteNote] = React.useState(false);
 
   React.useEffect(() => {
     if (note) {
@@ -109,8 +108,8 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
         tint="dark"
         style={{ flex: 1, justifyContent: "center" }}
       >
-        <View className="flex-1 justify-center px-6">
-          <View className="rounded-2xl bg-white dark:bg-gray-900 shadow-lg">
+        <View className="flex-1 justify-center px-6 max-w-3xl mx-auto">
+          <View className="rounded-2xl flex justify-between bg-white dark:bg-gray-900 shadow-lg m-auto">
             <View className="p-6">
               <View className="gap-2">
                 {/* Header */}
@@ -341,6 +340,8 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
                 )}
               </View>
             </View>
+
+            {/* Footer Buttons */}
             <View className="bg-gray-100 dark:bg-gray-700/25 py-4 px-5 rounded-b-2xl">
               <View className="w-full flex flex-row justify-end gap-4">
                 {!editMode && (

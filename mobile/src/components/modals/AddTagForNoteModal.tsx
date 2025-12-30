@@ -107,7 +107,7 @@ const AddTagForNoteModal = ({
             behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
             {!openAddTag && (
-              <View className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+              <View className="bg-white dark:bg-gray-800 mx-auto rounded-xl p-6 shadow-lg">
                 <View className="flex flex-col">
                   <View>
                     <Text className="font-bold text-lg text-gray-900 dark:text-white">
@@ -178,7 +178,8 @@ const AddTagForNoteModal = ({
                     </ScrollView>
                   </View>
 
-                  <View className="gap-2 flex flex-col mt-4">
+                  {/* Buttons */}
+                  <View className="gap-1 flex flex-col mt-4">
                     <TouchableOpacity
                       className=" bg-green-500 items-center justify-center p-3 border border-gray-300 rounded-xl"
                       onPress={() => {
@@ -215,7 +216,7 @@ const AddTagForNoteModal = ({
             )}
 
             {openAddTag && (
-              <View className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-lg">
+              <View className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-lg flex mx-auto w-full max-w-md">
                 <Text className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Etiket Ekle
                 </Text>
@@ -271,11 +272,11 @@ const AddTagForNoteModal = ({
 
 const styles = StyleSheet.create({
   tag: {
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 999,
     marginRight: 8,
-    marginBottom: 8,
+    marginVertical: 8,
   },
   tagDefault: {
     backgroundColor: "#3B82F6",

@@ -1,27 +1,26 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 function AuthRedirectContent() {
   const searchParams = useSearchParams();
-  const [countdown, setCountdown] = useState(2);
+  const router = useRouter();
+  const [countdown, setCountdown] = useState(3);
   const redirectTo = searchParams.get("to") || "/login";
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          window.location.href = redirectTo;
-          return 0;
-        }
-        return prev - 1;
-      });
+    if (countdown === 0) {
+      window.location.href = redirectTo;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown((prev) => prev - 1);
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [redirectTo]);
+    return () => clearTimeout(timer);
+  }, [countdown, redirectTo]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#101622] flex items-center justify-center p-4">

@@ -99,6 +99,7 @@ export const TagsSection = () => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const [isAddTagModalVisible, setIsAddTagModalVisible] = useState(false);
+
   useEffect(() => {
     if (isMenuVisible) {
       Animated.parallel([

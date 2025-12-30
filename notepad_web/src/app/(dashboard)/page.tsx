@@ -1,25 +1,33 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { getNotesServerSide } from "@/lib/api";
+"use client";
+
+import { useAuth } from "@/providers/AuthProvider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import HomePage from "./HomePage";
+import { useNotes } from "@/providers/NotesProvider";
 
-export default async function Home() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth-token")?.value;
+export default function Home() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const { notes } = useNotes();
+  const router = useRouter();
 
-  if (!token) {
-    redirect("/login");
-  }
-
-  let initialNotes = [];
-  try {
-    initialNotes = await getNotesServerSide(token);
-  } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
-      redirect("/login");
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
     }
-    initialNotes = [];
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-600 dark:text-gray-400">Yükleniyor...</div>
+      </div>
+    );
   }
 
-  return <HomePage initialNotes={initialNotes} />;
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return <HomePage initialNotes={notes} />;
 }

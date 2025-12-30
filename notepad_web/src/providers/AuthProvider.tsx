@@ -27,17 +27,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem("user");
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
-        setIsInitialized(true);
+    const checkAuth = async () => {
+      try {
+        const savedUser = localStorage.getItem("user");
+        const token = getCookie("auth-token");
+
+        if (savedUser && token) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            setIsInitialized(true);
+            setIsLoading(false);
+            return;
+          } catch (error) {
+            console.error("Failed to parse saved user:", error);
+            localStorage.removeItem("user");
+          }
+        }
+
+        if (token) {
+          try {
+            const userData = await api.getCurrentUser();
+            setUser(userData);
+            setIsInitialized(true);
+          } catch (error) {
+            console.error("Auth check failed:", error);
+            setUser(null);
+            deleteCookie("auth-token");
+            localStorage.removeItem("user");
+          }
+        }
+      } catch (error) {
+        console.error("Auth initialization failed:", error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to parse saved user:", error);
-      localStorage.removeItem("user");
-    }
+    };
 
     checkAuth();
   }, []);
@@ -49,27 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("user");
     }
   }, [user]);
-
-  const checkAuth = async () => {
-    try {
-      const token = getCookie("auth-token");
-      if (token) {
-        if (isInitialized) {
-          setIsLoading(false);
-          return;
-        }
-
-        const userData = await api.getCurrentUser();
-        setUser(userData);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setUser(null);
-      deleteCookie("auth-token");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -86,7 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Failed to fetch user data:", error);
       }
 
-      router.push("/");
+      // Use hard redirect for Safari compatibility
+      window.location.href = "/";
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -108,7 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Failed to fetch user data:", error);
       }
 
-      router.push("/");
+      // Use hard redirect for Safari compatibility
+      window.location.href = "/";
     } catch (error) {
       console.error("Registration failed:", error);
       throw error;
@@ -205,10 +211,18 @@ export function useAuth() {
 function setCookie(name: string, value: string, days: number) {
   if (typeof document === "undefined") return;
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  // SameSite=Lax Safari uyumluluğu için
-  document.cookie = `${name}=${encodeURIComponent(
+  // Safari compatibility: Use SameSite=None with Secure for cross-origin, or SameSite=Lax for same-origin
+  // For localhost development, SameSite=Lax works better
+  const cookieString = `${name}=${encodeURIComponent(
     value
   )}; expires=${expires}; path=/; SameSite=Lax`;
+  document.cookie = cookieString;
+
+  // Verify cookie was set (Safari debug)
+  const verify = getCookie(name);
+  if (!verify) {
+    console.warn(`Failed to set cookie: ${name}`);
+  }
 }
 
 function getCookie(name: string): string | null {
@@ -222,5 +236,7 @@ function getCookie(name: string): string | null {
 
 function deleteCookie(name: string) {
   if (typeof document === "undefined") return;
+  // Try multiple variations to ensure deletion across browsers
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }

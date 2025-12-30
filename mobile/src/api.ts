@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const DEFAULT_BASE_URL = "http://127.0.0.1:8000/";
 
 const API_BASE_URL =
@@ -196,4 +198,48 @@ export const createNote = (
       tags: data.tags ?? [],
     },
   });
+  
+export const pinnedNote = async (
+  token: string,
+  noteId: number
+) => {
+  try {
+    const response = await apiRequest<any>({
+      path: `/notes/notes/toggle-pin/${noteId}`,
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error("Pinned Note Error:", error);
+    throw error;
+  }
+};
 
+export const getAllTagsByUser = async (token:string) => {
+  try {
+    const response = await apiRequest<any[]>({
+      path:"/tags/tag/get-all-tags",
+      method:"GET",
+      headers:{
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response; 
+  } catch (error) {
+    console.error("Get All Tags Error:", error);
+    throw error;
+  }
+}
+
+export const deleteNote = async (token:string,noteId: number) => {
+  return apiRequest<void>({
+    path: `/notes/notes/delete/${noteId}`,
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};

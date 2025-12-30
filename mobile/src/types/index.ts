@@ -26,21 +26,26 @@ export interface User {
 
 // Note Types
 export interface Note {
-  id: string;
+  id: number;
   title: string;
   content: string;
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
+  tags: Tag[];
+  created_at: string;
+  updated_at?: string;
+  is_pinned?: boolean;
+  is_favorite?: boolean;
+  is_feature_note?: boolean;
+  feature_date?: string | null;
+  priority?: "Low" | "Medium" | "High";
+  scheduled_for?: string | null;
 }
 
 // Tag Types
 export interface Tag {
-  id: string;
+  id: number;
   name: string;
-  color: string;
-  noteCount: number;
+  color?: string;
+  notes_count?: number;
 }
 
 // Theme Types

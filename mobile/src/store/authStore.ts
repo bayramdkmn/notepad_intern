@@ -2,6 +2,7 @@ import { create } from "zustand";
 import * as api from "../api";
 import { User } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNotesStore } from "./notesStore";
 
 type RegisterPayload = {
   name: string;
@@ -35,12 +36,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error("Geçersiz e-posta adresi veya şifre");
       }
 
-
       const { access_token, refresh_token, token_type } = response;
       // Save tokens to AsyncStorage
       await AsyncStorage.setItem("accessToken", access_token);
       await AsyncStorage.setItem("refreshToken", refresh_token);
       await AsyncStorage.setItem("tokenType", token_type);
+      const notesStore = useNotesStore.getState();
+      await notesStore.fetchNotes();
+      await notesStore.getUserTags();
       set({
         isLoggedIn: true,
         user: {
@@ -77,7 +80,6 @@ export const useAuthStore = create<AuthState>((set) => ({
           email: response.email,
         },
       });
-      console.log(response)
     } catch (error: any) {
       const errorMessage = error?.message || "";
       const errorString = errorMessage.toLowerCase();

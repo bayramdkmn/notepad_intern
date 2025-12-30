@@ -1,5 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 const DEFAULT_BASE_URL = "http://127.0.0.1:8000/";
 
 const API_BASE_URL =
@@ -64,12 +62,10 @@ export async function apiRequest<TResponse = unknown, TBody = unknown>({
   const payload = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
-    // Backend'den gelen hata mesajını parse et
     let errorMessage = "API request failed";
     
     if (isJson && typeof payload === "object" && payload !== null) {
       const errorData = payload as any;
-      // FastAPI genelde detail alanında hata mesajını verir
       if (errorData.detail) {
         if (typeof errorData.detail === "string") {
           errorMessage = errorData.detail;
@@ -218,6 +214,18 @@ export const pinnedNote = async (
   }
 };
 
+
+export const deleteNote = async (token:string,noteId: number) => {
+  return apiRequest<void>({
+    path: `/notes/notes/delete/${noteId}`,
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+// Etiketler
 export const getAllTagsByUser = async (token:string) => {
   try {
     const response = await apiRequest<any[]>({
@@ -234,12 +242,28 @@ export const getAllTagsByUser = async (token:string) => {
   }
 }
 
-export const deleteNote = async (token:string,noteId: number) => {
+export const deleteTag = async (token:string,tag_id: number) => {
   return apiRequest<void>({
-    path: `/notes/notes/delete/${noteId}`,
+    path: `/tags/tag/delete/${tag_id}`,
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-};
+}
+
+export const updateTag = async (
+  token:string,
+  tag_id: number,
+  name: string,) => {
+  return apiRequest<any>({
+    path: `/tags/tag/update-tag/${tag_id}`,
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: {
+      name,
+    },
+  });
+}

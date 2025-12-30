@@ -88,7 +88,6 @@ export default function TagsPage({ initialTags = [] }: TagsPageProps) {
       await updateTag(id, editingName.trim());
       setEditingId(null);
       setEditingName("");
-      // Notları refresh et - tag isim değişikliklerini görmek için
       await refreshNotes();
     } catch (error) {
       console.error("Failed to update tag:", error);

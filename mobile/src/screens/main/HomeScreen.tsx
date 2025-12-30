@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   SafeAreaView,
   Animated,
@@ -17,6 +16,7 @@ import { TagsSection } from "./sections/TagsSection";
 import { SettingsSection } from "./sections/SettingsSection";
 import { ProfileSection } from "./sections/ProfileSection";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Toast from "react-native-toast-message";
 
 const SIDEBAR_WIDTH = 300;
 type ScreenKey = SidebarScreen;
@@ -153,6 +153,7 @@ export const HomeScreen = () => {
           />
         </Animated.View>
       </View>
+      <Toast />
     </SafeAreaView>
   );
 };

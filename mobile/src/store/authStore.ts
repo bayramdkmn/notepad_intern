@@ -3,6 +3,7 @@ import * as api from "../api";
 import { User } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotesStore } from "./notesStore";
+import { useTagsStore } from "./tagsStore";
 
 type RegisterPayload = {
   name: string;
@@ -42,8 +43,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       await AsyncStorage.setItem("refreshToken", refresh_token);
       await AsyncStorage.setItem("tokenType", token_type);
       const notesStore = useNotesStore.getState();
+      const tagsStore = useTagsStore.getState();
+      await tagsStore.getUserTags();
       await notesStore.fetchNotes();
-      await notesStore.getUserTags();
       set({
         isLoggedIn: true,
         user: {

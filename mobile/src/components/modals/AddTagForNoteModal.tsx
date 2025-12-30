@@ -16,6 +16,7 @@ import { useNotesStore } from "../../store/notesStore";
 import { Input } from "../common/Input";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import { useTagsStore } from "../../store/tagsStore";
 
 type AddTagForNoteModalProps = {
   visible: boolean;
@@ -37,7 +38,7 @@ const AddTagForNoteModal = ({
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [nameExists, setNameExists] = useState(false);
 
-  const { userTags, getUserTags } = useNotesStore();
+  const { getUserTags, userTags } = useTagsStore();
 
   const availableTags =
     userTags?.filter(

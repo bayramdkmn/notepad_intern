@@ -1,159 +1,59 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
-  Animated,
-  TouchableWithoutFeedback,
   Modal,
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
+  ScrollView,
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useColorScheme } from "nativewind";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AddTagModal from "../../../components/modals/AddTagModal";
-
-type Tag = {
-  id: string;
-  name: string;
-  count?: number;
-};
-
-const initialTags: Tag[] = [
-  {
-    id: "1",
-    name: "İş",
-    count: 10,
-  },
-  {
-    id: "2",
-    name: "Kişisel",
-    count: 5,
-  },
-  {
-    id: "3",
-    name: "Önemli",
-    count: 3,
-  },
-  {
-    id: "4",
-    name: "İş",
-    count: 10,
-  },
-  {
-    id: "5",
-    name: "Kişisel",
-    count: 5,
-  },
-  {
-    id: "6",
-    name: "Önemli",
-    count: 3,
-  },
-  {
-    id: "7",
-    name: "İş",
-    count: 10,
-  },
-  {
-    id: "8",
-    name: "Kişisel",
-    count: 5,
-  },
-  {
-    id: "9",
-    name: "Önemli",
-    count: 3,
-  },
-  {
-    id: "10",
-    name: "İş",
-    count: 10,
-  },
-  {
-    id: "11",
-    name: "Kişisel",
-    count: 5,
-  },
-  {
-    id: "12",
-    name: "Önemli",
-    count: 3,
-  },
-];
+import { Note, Tag } from "../../../types";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { useTagsStore } from "../../../store/tagsStore";
+import { useNotesStore } from "../../../store/notesStore";
+import Toast from "react-native-toast-message";
 
 export const TagsSection = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const [tags, setTags] = useState<Tag[]>(initialTags);
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const { userTags, getUserTags, deleteUserTag, updateTag } = useTagsStore();
+  const { notes, fetchNotes } = useNotesStore();
+  const [tags, setTags] = useState<Tag[]>(userTags);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [editedTagName, setEditedTagName] = useState("");
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
   const [isAddTagModalVisible, setIsAddTagModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [affectedNotes, setAffectedNotes] = useState<Note[]>([]);
+  const [singleTagNotes, setSingleTagNotes] = useState<Note[]>([]);
 
-  useEffect(() => {
-    if (isMenuVisible) {
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          useNativeDriver: true,
-          tension: 50,
-          friction: 7,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(scaleAnim, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [isMenuVisible, scaleAnim, opacityAnim]);
-
-  const handleEdit = () => {
-    setIsMenuVisible(false);
-    setIsEditMode(true);
-  };
-
-  const handleDelete = () => {
-    setIsMenuVisible(false);
-    setIsDeleteMode(true);
-  };
-
-  const handleTagPress = (tag: Tag) => {
-    if (isEditMode) {
-      setSelectedTag(tag);
-      setEditedTagName(tag.name);
-      setIsEditModalVisible(true);
-    } else if (isDeleteMode) {
-      setSelectedTag(tag);
-      setIsDeleteModalVisible(true);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await getUserTags();
+      setTags(userTags);
+    } catch (error) {
+      console.error("Etiketler yenilenirken hata oluştu:", error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
-  const handleSaveTagName = () => {
+  const handleSaveTagName = async () => {
     if (selectedTag && editedTagName.trim()) {
+      await updateTag({ ...selectedTag, name: editedTagName.trim() });
+      fetchNotes();
       setTags((prevTags) =>
         prevTags.map((tag) =>
           tag.id === selectedTag.id
@@ -161,6 +61,12 @@ export const TagsSection = () => {
             : tag
         )
       );
+      Toast.show({
+        type: "success",
+        text1: "Başarılı",
+        text2: "Etiket güncellendi",
+        position: "bottom",
+      });
       setIsEditModalVisible(false);
       setSelectedTag(null);
       setEditedTagName("");
@@ -175,200 +81,145 @@ export const TagsSection = () => {
     setIsEditMode(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleDeleteTag = (tag: Tag) => {
+    const notesWithTag = notes.filter((note: Note) =>
+      note.tags.some((t) => t.id === tag.id)
+    );
+
+    if (notesWithTag.length === 0) {
+      setSelectedTag(tag);
+      setAffectedNotes([]);
+      setSingleTagNotes([]);
+      setIsDeleteModalVisible(true);
+      return;
+    }
+
+    const singleTag = notesWithTag.filter(
+      (note: Note) => note.tags.length === 1
+    );
+
+    setSelectedTag(tag);
+    setAffectedNotes(notesWithTag);
+    setSingleTagNotes(singleTag);
+    setIsDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
     if (selectedTag) {
-      setTags((prevTags) =>
-        prevTags.filter((tag) => tag.id !== selectedTag.id)
-      );
-      setIsDeleteModalVisible(false);
-      setSelectedTag(null);
-      setIsDeleteMode(false);
+      try {
+        await deleteUserTag(selectedTag.id);
+        fetchNotes();
+        setTags((prevTags) =>
+          prevTags.filter((tag) => tag.id !== selectedTag.id)
+        );
+        setIsDeleteModalVisible(false);
+        setSelectedTag(null);
+        setAffectedNotes([]);
+        setSingleTagNotes([]);
+        setIsDeleteMode(false);
+        Toast.show({
+          type: "success",
+          text1: "Başarılı",
+          text2: "Etiket silindi",
+          position: "bottom",
+        });
+      } catch (error) {
+        console.error("Etiket silinirken hata oluştu:", error);
+      }
     }
   };
 
   const handleCancelDelete = () => {
     setIsDeleteModalVisible(false);
     setSelectedTag(null);
+    setAffectedNotes([]);
+    setSingleTagNotes([]);
     setIsDeleteMode(false);
-  };
-
-  const handleAddTag = () => {
-    setIsMenuVisible(false);
-    setIsAddTagModalVisible(true);
   };
 
   const handleSubmitNewTag = (payload: { name: string }) => {
     const newTag: Tag = {
-      id: Date.now().toString(),
+      id: Date.now(),
       name: payload.name,
     };
     setTags((prevTags) => [...prevTags, newTag]);
   };
 
+  const renderTagItem = ({ item: tag }: { item: Tag }) => (
+    <View
+      className={`bg-gray-50 flex flex-row dark:bg-gray-800 rounded-2xl p-4 border ${
+        isEditMode
+          ? "border-blue-500 dark:border-blue-400"
+          : isDeleteMode
+          ? "border-red-500 dark:border-red-400"
+          : "border-gray-200 dark:border-gray-700"
+      } gap-2 items-center`}
+    >
+      <AntDesign name="tag" size={20} color={isDark ? "white" : "black"} />
+      <View className="flex-1 flex-col">
+        <Text className="text-base font-semibold text-gray-900 dark:text-white">
+          {tag.name}
+        </Text>
+        <Text className="text-sm text-gray-500 dark:text-gray-400">
+          {tag.usage_count ? `${tag.usage_count} not` : "Henüz kullanılmamış"}
+        </Text>
+      </View>
+      <View className="gap-10 flex flex-row">
+        <MaterialIcons
+          onPress={() => {
+            setSelectedTag(tag);
+            setEditedTagName(tag.name);
+            setIsEditModalVisible(true);
+          }}
+          name="mode-edit"
+          size={22}
+          color="gray"
+        />
+        <Feather
+          onPress={() => handleDeleteTag(tag)}
+          name="trash"
+          size={22}
+          color="red"
+        />
+      </View>
+    </View>
+  );
+
   return (
     <View className="flex-1 relative">
-      <ScrollView
-        className="flex-1"
+      <FlatList
+        data={tags}
+        renderItem={renderTagItem}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingTop: 32,
           paddingBottom: 100,
+          gap: 8,
         }}
-      >
-        <View className="space-y-4 gap-2">
-          {isEditMode && (
-            <View className="mb-4 px-2">
-              <Text className="text-sm text-gray-600 dark:text-gray-400">
-                Düzenlemek için bir etiket seçin
-              </Text>
-            </View>
-          )}
-          {isDeleteMode && (
-            <View className="mb-4 px-2 flex-row justify-between">
-              <Text className="text-sm text-red-600 dark:text-red-400">
-                Silmek için bir etiket seçin
-              </Text>
-              <TouchableOpacity
-                onPress={() => setIsDeleteMode(false)}
-                className="bg-red-500 px-4 py-2 rounded-lg"
-              >
-                <Text className="text-white">İptal</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          {tags.map((tag) => (
-            <TouchableOpacity
-              key={tag.id}
-              onPress={() => handleTagPress(tag)}
-              activeOpacity={isEditMode || isDeleteMode ? 0.7 : 1}
-              disabled={!isEditMode && !isDeleteMode}
-            >
-              <View
-                className={`bg-gray-50 flex flex-row dark:bg-gray-800 rounded-2xl p-4 border ${
-                  isEditMode
-                    ? "border-blue-500 dark:border-blue-400"
-                    : isDeleteMode
-                    ? "border-red-500 dark:border-red-400"
-                    : "border-gray-200 dark:border-gray-700"
-                } gap-2 items-center ${
-                  isEditMode || isDeleteMode ? "opacity-100" : "opacity-100"
-                }`}
-              >
-                <AntDesign
-                  name="tag"
-                  size={20}
-                  color={isDark ? "white" : "black"}
-                />
-                <View className="flex-1 flex-col">
-                  <Text className="text-base font-semibold text-gray-900 dark:text-white">
-                    {tag.name}
-                  </Text>
-                  <Text className="text-sm text-gray-500 dark:text-gray-400">
-                    {tag.count ? `${tag.count} not` : "Henüz kullanılmamış"}
-                  </Text>
-                </View>
-                {(isEditMode || isDeleteMode) && (
-                  <Ionicons
-                    name={
-                      isDeleteMode ? "trash-outline" : "chevron-forward-outline"
-                    }
-                    size={20}
-                    color={
-                      isDeleteMode ? "#ef4444" : isDark ? "white" : "black"
-                    }
-                  />
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-      {isMenuVisible && (
-        <TouchableWithoutFeedback onPress={() => setIsMenuVisible(false)}>
-          <View className="absolute top-0 left-0 right-0 bottom-0 z-40" />
-        </TouchableWithoutFeedback>
-      )}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#3b82f6"
+            colors={["#3b82f6"]}
+          />
+        }
+      />
+
+      {/* Add Tag Button */}
       <View className="absolute bottom-6 right-6 z-50">
-        <Animated.View
-          style={{
-            transform: [{ scale: scaleAnim }],
-            opacity: opacityAnim,
-            position: "absolute",
-            bottom: 50,
-            right: 20,
-            width: 150,
-          }}
-          pointerEvents={isMenuVisible ? "auto" : "none"}
-        >
-          <View
-            className={`rounded-2xl shadow-lg ${
-              isDark ? "bg-gray-800" : "bg-white"
-            } border ${
-              isDark ? "border-gray-700" : "border-gray-200"
-            } overflow-hidden`}
-          >
-            <TouchableOpacity
-              onPress={handleAddTag}
-              activeOpacity={0.7}
-              className={`flex-row items-center px-4 py-3 border-b ${
-                isDark ? "border-gray-700" : "border-gray-200"
-              }`}
-            >
-              <Ionicons
-                name="add-outline"
-                size={20}
-                color={isDark ? "white" : "black"}
-              />
-              <Text
-                className={`ml-3 text-base ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Etiket Ekle
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleEdit}
-              activeOpacity={0.7}
-              className={`flex-row items-center px-4 py-3 border-b ${
-                isDark ? "border-gray-700" : "border-gray-200"
-              }`}
-            >
-              <Ionicons
-                name="create-outline"
-                size={20}
-                color={isDark ? "white" : "black"}
-              />
-              <Text
-                className={`ml-3 text-base ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Düzenle
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleDelete}
-              activeOpacity={0.7}
-              className="flex-row items-center px-4 py-3"
-            >
-              <Ionicons name="trash-outline" size={20} color="#ef4444" />
-              <Text className="ml-3 text-base text-red-500">Sil</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
         <TouchableOpacity
           activeOpacity={0.7}
           className="h-12 w-12 rounded-full items-center justify-center bg-blue-500 dark:bg-blue-600 shadow-lg"
-          onPress={() => setIsMenuVisible(!isMenuVisible)}
+          onPress={() => setIsAddTagModalVisible(true)}
         >
-          <Ionicons
-            name={isMenuVisible ? "close" : "add"}
-            size={28}
-            color="white"
-          />
+          <Ionicons name="add" size={28} color="white" />
         </TouchableOpacity>
       </View>
+
+      {/* Edit Tag Modal */}
       <Modal
         transparent
         animationType="fade"
@@ -441,6 +292,8 @@ export const TagsSection = () => {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      {/* Delete Tag Modal */}
       <Modal
         transparent
         animationType="fade"
@@ -448,63 +301,133 @@ export const TagsSection = () => {
         onRequestClose={handleCancelDelete}
       >
         <View className="flex-1 bg-black/50 justify-center px-6">
-          <View
-            className={`rounded-2xl shadow-lg p-6 ${
-              isDark ? "bg-gray-800" : "bg-white"
-            }`}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
-            <View className="items-center mb-4">
-              <View className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 items-center justify-center mb-4">
-                <Ionicons name="trash-outline" size={32} color="#ef4444" />
+            <ScrollView
+              contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+            >
+              <View
+                className={`rounded-2xl shadow-lg p-6 ${
+                  isDark ? "bg-gray-800" : "bg-white"
+                }`}
+              >
+                <View className="items-center mb-4">
+                  <View className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 items-center justify-center mb-4">
+                    <Ionicons name="trash-outline" size={32} color="#ef4444" />
+                  </View>
+                  <Text
+                    className={`text-xl font-semibold mb-2 ${
+                      isDark ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Etiketi Sil
+                  </Text>
+                  <Text
+                    className={`text-center text-base ${
+                      isDark ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    "{selectedTag?.name}" etiketini silmek istediğinize emin
+                    misiniz?
+                  </Text>
+
+                  {/* Etkilenen notlar uyarısı */}
+                  {affectedNotes.length > 0 && (
+                    <View className="mt-4 w-full">
+                      <View
+                        className={`p-3 rounded-xl ${
+                          isDark ? "bg-yellow-900/30" : "bg-yellow-50"
+                        }`}
+                      >
+                        <Text
+                          className={`text-sm font-medium mb-1 ${
+                            isDark ? "text-yellow-400" : "text-yellow-800"
+                          }`}
+                        >
+                          ⚠️ Bu etiket {affectedNotes.length} notta kullanılıyor
+                        </Text>
+                        {singleTagNotes.length > 0 && (
+                          <Text
+                            className={`text-sm ${
+                              isDark ? "text-yellow-300" : "text-yellow-700"
+                            }`}
+                          >
+                            {singleTagNotes.length} not yalnızca bu etikete
+                            sahip ve etiketsiz kalacağı için not da silinecek!
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* List single notes */}
+                      {singleTagNotes.length > 0 && (
+                        <View className="mt-3 max-h-32">
+                          <Text
+                            className={`text-sm font-medium mb-2 ${
+                              isDark ? "text-gray-300" : "text-gray-700"
+                            }`}
+                          >
+                            Silinecek notlar:
+                          </Text>
+                          <ScrollView
+                            className={`border rounded-lg p-2 ${
+                              isDark
+                                ? "border-gray-700 bg-gray-900/50"
+                                : "border-gray-200 bg-gray-50"
+                            }`}
+                          >
+                            {singleTagNotes.map((note) => (
+                              <Text
+                                key={note.id}
+                                className={`text-sm mb-1 ${
+                                  isDark ? "text-gray-400" : "text-gray-600"
+                                }`}
+                              >
+                                • {note.title}
+                              </Text>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  <Text
+                    className={`text-center text-sm mt-3 ${
+                      isDark ? "text-gray-500" : "text-gray-500"
+                    }`}
+                  >
+                    Bu işlem geri alınamaz.
+                  </Text>
+                </View>
+                <View className="flex-row mt-6 gap-3">
+                  <TouchableOpacity
+                    onPress={handleCancelDelete}
+                    className={`flex-1 py-3 rounded-xl border items-center ${
+                      isDark ? "border-gray-700" : "border-gray-200"
+                    }`}
+                  >
+                    <Text
+                      className={`font-medium ${
+                        isDark ? "text-gray-300" : "text-gray-600"
+                      }`}
+                    >
+                      Vazgeç
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleConfirmDelete}
+                    className="flex-1 py-3 rounded-xl bg-red-500 dark:bg-red-600 items-center"
+                  >
+                    <Text className="text-white font-semibold">Sil</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <Text
-                className={`text-xl font-semibold mb-2 ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Etiketi Sil
-              </Text>
-              <Text
-                className={`text-center text-base ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                "{selectedTag?.name}" etiketini silmek istediğinize emin
-                misiniz?
-              </Text>
-              <Text
-                className={`text-center text-sm mt-2 ${
-                  isDark ? "text-gray-500" : "text-gray-500"
-                }`}
-              >
-                Bu işlem geri alınamaz.
-              </Text>
-            </View>
-            <View className="flex-row mt-6 gap-3">
-              <TouchableOpacity
-                onPress={handleCancelDelete}
-                className={`flex-1 py-3 rounded-xl border items-center ${
-                  isDark ? "border-gray-700" : "border-gray-200"
-                }`}
-              >
-                <Text
-                  className={`font-medium ${
-                    isDark ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
-                  Vazgeç
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleConfirmDelete}
-                className="flex-1 py-3 rounded-xl bg-red-500 dark:bg-red-600 items-center"
-              >
-                <Text className="text-white font-semibold">Sil</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
+
       <AddTagModal
         visible={isAddTagModalVisible}
         onClose={() => setIsAddTagModalVisible(false)}
@@ -513,3 +436,5 @@ export const TagsSection = () => {
     </View>
   );
 };
+
+export default TagsSection;

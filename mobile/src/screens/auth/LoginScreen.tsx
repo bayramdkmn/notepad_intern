@@ -88,7 +88,7 @@ export const LoginScreen = () => {
             </Text>
             <Switch value={isDark} onValueChange={toggleTheme} />
           </View>
-          <View className="flex justify-center items-center  h-4/5">
+          <View className="flex justify-center items-center  h-4/5 mx-auto w-full max-w-2xl">
             <View className="bg-blue-100 dark:bg-indigo-800 p-3 mb-4 rounded-2xl items-center justify-center">
               <MaterialCommunityIcons
                 name="notebook-edit"

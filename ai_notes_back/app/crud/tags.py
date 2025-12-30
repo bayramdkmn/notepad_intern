@@ -84,7 +84,17 @@ async def get_all_tags_by_user(dependency:user_dependency,db:Session=Depends(get
         return {
             "tags": []
         }
-    return db_tags
+
+    result = []
+    for tag in db_tags:
+        count = sum(1 for note in tag.notes if note.user_id == dependency.get("id"))
+        result.append({
+            "id": tag.id,
+            "name": tag.name,
+            "usage_count": count
+        })
+
+    return result
 
 @router.get("/tag/get-tag-by-id/{tag_id}")
 async def get_tag_by_id(tag_id:int,dependency:user_dependency,db:Session=Depends(get_db)):

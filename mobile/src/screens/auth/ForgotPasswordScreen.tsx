@@ -81,7 +81,7 @@ export const ForgotPasswordScreen = () => {
         >
           <View className="flex-1 px-6">
             {/* Header */}
-            <View className="flex-row items-center h-14 justify-between">
+            <View className="flex-row items-center h-14 justify-between ">
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
                 className="h-10 w-10 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 items-center justify-center"
@@ -105,7 +105,7 @@ export const ForgotPasswordScreen = () => {
             </View>
 
             {/* Content */}
-            <View className="flex h-3/4 gap-6 items-center justify-center">
+            <View className="flex h-3/4 gap-6 items-center justify-center mx-auto w-full max-w-xl">
               {/* Icon */}
               <View className="flex items-center pb-8">
                 <View className="h-40 w-40 rounded-full bg-blue-500/10 items-center justify-center">

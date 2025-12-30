@@ -95,7 +95,6 @@ export default function NoteModal({
       e.preventDefault();
       handleAddTag();
     } else if (e.key === "Backspace" && !tagInput && editedTags.length > 0) {
-      // Input boşken backspace'e basılırsa son etiketi sil
       setEditedTags(editedTags.slice(0, -1));
     }
   };
@@ -336,9 +335,9 @@ export default function NoteModal({
                 {/* Eklenen etiketler */}
                 {editedTags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
-                    {editedTags.map((tag) => (
+                    {editedTags.map((tag, index) => (
                       <span
-                        key={tag}
+                        key={`edited-tag-${index}`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-500/20 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-500/30 transition-colors group"
                       >
                         {tag}

@@ -164,7 +164,7 @@ export const RegisterScreen = () => {
               <Switch value={isDark} onValueChange={toggleTheme} />
             </View>
             {/* Content */}
-            <View className="flex h-5/6 justify-center">
+            <View className="flex h-5/6 justify-center mx-auto w-full max-w-2xl">
               {/* Header */}
               <View className="mb-10">
                 <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">

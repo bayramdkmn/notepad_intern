@@ -45,7 +45,7 @@ export interface Tag {
   id: number;
   name: string;
   color?: string;
-  notes_count?: number;
+  usage_count?: number;
 }
 
 // Theme Types

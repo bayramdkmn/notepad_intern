@@ -5,13 +5,11 @@ import { Note, Tag } from "../types";
 
 type NotesState = {
   pinnedNote(noteId: number): unknown;
-  userTags: Tag[];
   notes: Note[];
   isLoading: boolean;
   error?: string;
   fetchNotes: () => Promise<void>;
   addNote: (payload: { title: string; content: string }) => Promise<void>;
-  getUserTags: () => Promise<void>;
   deleteNote: (noteId: number) => Promise<void>;
 };
 
@@ -28,7 +26,6 @@ let token: string | null = null;
 
 export const useNotesStore = create<NotesState>((set, get) => ({
   notes: [],
-  userTags: [],
   isLoading: false,
   error: undefined,
 
@@ -60,21 +57,6 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       });
     } catch (error: any) {
       set({ error: error?.message ?? "Not eklenemedi" });
-    }
-  },
-
-  getUserTags: async () => {
-    const { userTags } = get();
-    if (!token) {
-      set({ error: "Token bulunamadı" });
-      return;
-    }
-    set({ error: undefined });
-    try {
-      const tags = await getAllTagsByUser(token);
-      set({ userTags: tags });
-    } catch (error: any) {
-      set({ error: error?.message ?? "Etiketler alınamadı" });
     }
   },
 

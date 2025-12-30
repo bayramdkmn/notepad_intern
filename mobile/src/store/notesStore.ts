@@ -1,11 +1,11 @@
 import { create } from "zustand";
 import { fetchNotes, createNote, pinnedNote, getAllTagsByUser, deleteNote } from "../api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Note } from "../types";
+import { Note, Tag } from "../types";
 
 type NotesState = {
   pinnedNote(noteId: number): unknown;
-  userTags: any[];
+  userTags: Tag[];
   notes: Note[];
   isLoading: boolean;
   error?: string;

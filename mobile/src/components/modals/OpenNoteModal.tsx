@@ -114,15 +114,14 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
             <View className="p-6">
               <View className="gap-2">
                 {/* Header */}
-                <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row gap-4 items-center justify-between mb-3">
                   <View className="items-center flex flex-row gap-2 flex-1">
                     {editMode ? (
-                      <View className="border border-gray-400 px-2 leading-6 text-gray-800 dark:text-gray-300 flex-1 py-1 rounded-lg">
+                      <View className="border-b border-gray-400 px-2 flex-1 pb-1 rounded-lg">
                         <TextInput
-                          className="text-xl font-semibold text-gray-900 dark:text-white"
+                          className="text-xl font-semibold color-black dark:color-white"
                           value={title}
                           onChangeText={setTitle}
-                          style={{ color: "#000" }}
                         />
                       </View>
                     ) : (
@@ -138,7 +137,11 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
                     <Ionicons name="close-outline" size={24} color="gray" />
                   </TouchableOpacity>
                 </View>
-                <View className="border-t border-gray-200" />
+
+                {!editMode && (
+                  <View className="border-t border-gray-200 dark:border-gray-700 mb-2" />
+                )}
+
                 {/* Priority & Date */}
                 <View className="flex flex-row gap-4 items-center mb-2">
                   <View className="relative">
@@ -210,7 +213,9 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
                     )}
                   </View>
 
-                  <Text className="font-thin text-xl">|</Text>
+                  <Text className="font-thin text-black dark:text-white text-xl">
+                    |
+                  </Text>
 
                   <Text className="text-sm text-gray-600 dark:text-gray-400">
                     {note?.created_at
@@ -222,7 +227,10 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
                       : "Tarih Bulunamadı"}
                   </Text>
                 </View>
-                <View className="border-t border-gray-200 dark:border-gray-700" />
+
+                {!editMode && (
+                  <View className="border-t border-gray-200 dark:border-gray-700" />
+                )}
               </View>
 
               {/* Content */}
@@ -236,11 +244,10 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
               >
                 {editMode ? (
                   <TextInput
-                    className="text-gray-800 dark:text-gray-300 max-h-40 scroll-auto text-base leading-6 border border-gray-400 rounded-lg p-3"
+                    className="max-h-40 color-black dark:color-white scroll-auto text-base leading-6 border-b border-gray-400 p-1"
                     multiline
                     value={content}
                     onChangeText={setContent}
-                    style={{ color: "#000" }}
                   />
                 ) : (
                   <Text className="text-gray-800 dark:text-gray-300 text-base leading-6  overflow-scroll ">
@@ -248,7 +255,10 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
                   </Text>
                 )}
               </ScrollView>
-              <View className="border-t py-1 border-gray-200 dark:border-gray-700" />
+
+              {!editMode && (
+                <View className="border-t py-1 border-gray-200 dark:border-gray-700" />
+              )}
 
               {/* Tags (always visible) */}
               <View className="p-1 flex flex-row items-center">
@@ -331,7 +341,7 @@ const OpenNoteModal = ({ visible, onClose, note }: OpenNoteModalProps) => {
                 )}
               </View>
             </View>
-            <View className="bg-gray-100 py-4 px-5 rounded-b-2xl">
+            <View className="bg-gray-100 dark:bg-gray-700/25 py-4 px-5 rounded-b-2xl">
               <View className="w-full flex flex-row justify-end gap-4">
                 {!editMode && (
                   <View className="flex-1 flex-row gap-3 justify-end">

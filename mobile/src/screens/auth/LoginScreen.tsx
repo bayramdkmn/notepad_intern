@@ -66,7 +66,7 @@ export const LoginScreen = () => {
     if (!validateForm()) return;
 
     try {
-      await login(email, password);
+      const res = await login(email, password);
     } catch (error: any) {
       Alert.alert("Hata", error?.message || "Giriş yapılırken bir hata oluştu");
     }

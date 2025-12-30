@@ -261,14 +261,16 @@ export const NotesSection = () => {
               </TouchableOpacity>
               <View className="flex justify-between flex-row">
                 <View className="flex flex-row gap-3 items-center">
-                  <Text>{note.title}</Text>
+                  <Text className="text-black dark:text-white">
+                    {note.title}
+                  </Text>
                   <View
                     className={`${
                       note.priority == "High"
-                        ? "bg-red-100 text-red-500 dark:bg-red-900/40"
+                        ? "bg-red-100 text-red-500 dark:bg-red-700"
                         : note.priority === "Medium"
-                        ? "bg-yellow-100 text-yellow-500 dark:bg-yellow-900/40"
-                        : "bg-green-100 text-green-500 dark:bg-green-900/40"
+                        ? "bg-yellow-100 text-yellow-500 dark:bg-yellow-600"
+                        : "bg-green-100 text-green-500 dark:bg-green-600"
                     } px-2 py-1 rounded-full`}
                   >
                     <Text>
@@ -297,7 +299,7 @@ export const NotesSection = () => {
                         key={tag.id}
                         className="bg-blue-100 dark:bg-blue-900/40 px-3 py-1 rounded-full"
                       >
-                        <Text className="text-xs text-blue-600 dark:text-blue-400">
+                        <Text className="text-sm text-blue-600 dark:text-blue-400">
                           {tag.name}
                         </Text>
                       </View>

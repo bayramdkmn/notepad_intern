@@ -14,6 +14,8 @@ import { Note } from "../../types";
 import { BlurView } from "expo-blur";
 import { useNotesStore } from "../../store/notesStore";
 import { Input } from "../common/Input";
+import EvilIcons from "@expo/vector-icons/EvilIcons";
+import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 
 type AddTagForNoteModalProps = {
   visible: boolean;
@@ -33,6 +35,7 @@ const AddTagForNoteModal = ({
   const [openAddTag, setOpenAddTag] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [nameExists, setNameExists] = useState(false);
 
   const { userTags, getUserTags } = useNotesStore();
 
@@ -51,10 +54,22 @@ const AddTagForNoteModal = ({
       setOpenAddTag(false);
       setQuery("");
       setSelectedTags([]);
+      setNameExists(false);
       return;
     }
     getUserTags?.().catch((e: any) => console.error("getUserTags error", e));
   }, [visible]);
+
+  const userAllTagsNameList = (userTags ?? []).map((tag: any) =>
+    String(tag?.name ?? "").toLowerCase()
+  );
+
+  useEffect(() => {
+    const trimmed = name.trim().toLowerCase();
+    setNameExists(
+      openAddTag && trimmed !== "" && userAllTagsNameList.includes(trimmed)
+    );
+  }, [name, userAllTagsNameList, openAddTag]);
 
   const toggleTag = (id: number) => {
     setSelectedTags((prev) =>
@@ -72,10 +87,10 @@ const AddTagForNoteModal = ({
   const handleSaveNewTag = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
+    if (nameExists) return; // guard
     onSubmit?.({ name: trimmed });
     setName("");
     setOpenAddTag(false);
-    // optionally refresh tags after creation
     getUserTags?.().catch(() => {});
   };
 
@@ -98,18 +113,25 @@ const AddTagForNoteModal = ({
                     <Text className="font-bold text-lg text-gray-900 dark:text-white">
                       Mevcut Eklenebilecek Etiketleriniz
                     </Text>
-                    <Text className="text-sm font-extralight mb-3">
+                    <Text className="text-sm font-light mb-3 dark:text-gray-500">
                       Listeden birden fazla etiket seçip kaydet butonuna basın
                     </Text>
 
-                    <View className="mb-3">
+                    <View className="mb-3 flex-row items-center border border-gray-300 dark:border-gray-600 gap-2 rounded-xl bg-white dark:bg-gray-700 pl-3">
+                      <SimpleLineIcons name="tag" size={24} color="gray" />
                       <Input
                         placeholder="Bir etiket ara..."
-                        className="h-10 justify-center w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-1 mt-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                        className="flex-1 h-10 px-1 justify-center text-gray-900 dark:text-white"
                         value={query}
                         style={{ color: "#000" }}
                         placeholderTextColor="#9ca3af"
                         onChangeText={setQuery}
+                      />
+                      <EvilIcons
+                        className="mr-3"
+                        name="search"
+                        size={24}
+                        color="#9ca3af"
                       />
                     </View>
 
@@ -206,11 +228,15 @@ const AddTagForNoteModal = ({
                       value={name}
                       onChangeText={setName}
                       placeholder="Etiket ismi"
-                      className="border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800"
+                      className="border border-gray-200 dark:border-gray-700 rounded-xl color-black dark:color-white px-4 py-3 bg-white dark:bg-gray-800"
                       placeholderTextColor="#9ca3af"
-                      style={{ color: "#000" }}
                       autoFocus
                     />
+                    {nameExists && (
+                      <Text className="text-sm text-red-500 mt-2">
+                        Bu isimde bir etiket zaten mevcut.
+                      </Text>
+                    )}
                   </View>
                 </View>
 
@@ -226,8 +252,10 @@ const AddTagForNoteModal = ({
 
                   <TouchableOpacity
                     onPress={handleSaveNewTag}
-                    className="flex-1 py-3 rounded-xl bg-blue-500 dark:bg-blue-600 items-center disabled:opacity-40"
-                    disabled={!name.trim()}
+                    className={`flex-1 py-3 rounded-xl bg-blue-500 dark:bg-blue-600 items-center disabled:opacity-40 ${
+                      nameExists ? "opacity-50" : ""
+                    }`}
+                    disabled={!name.trim() || nameExists}
                   >
                     <Text className="text-white font-semibold">Kaydet</Text>
                   </TouchableOpacity>

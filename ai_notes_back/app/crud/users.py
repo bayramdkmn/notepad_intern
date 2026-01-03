@@ -174,21 +174,27 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),db: Session = D
 
 
 @router.post("/refresh-token/")
-async def refresh_token_endpoint(refresh_token: str = Body(..., embed=True),  db: Session = Depends(get_db)):
+async def refresh_token_endpoint(refresh_token: str = Body(..., embed=True), db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(refresh_token, REFRESH_TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         raise HTTPException(401, detail="Invalid refresh token")
-
+    
     if db.query(TokenBlacklist).filter_by(jti=payload['jti']).first():
         raise HTTPException(401, detail="Token revoked")
-
+    
     user = db.query(Users).filter_by(id=payload['id']).first()
     if not user:
         raise HTTPException(404, detail="User not found")
-
-    new_access_token = create_access_token(user.email, user.id, timedelta(minutes=1440))
-
+    
+    # DÜZELTME: role parametresini ekleyin
+    new_access_token = create_access_token(
+        email=user.email,
+        user_id=user.id,
+        role=user.role,  # veya payload.get('role', 'user') - refresh token'dan alabilirsiniz
+        expires_delta=timedelta(minutes=1440)
+    )
+    
     return {"access_token": new_access_token, "token_type": "bearer"}
 
 
